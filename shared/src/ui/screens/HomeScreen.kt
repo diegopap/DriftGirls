@@ -194,25 +194,6 @@ fun HomeScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        OutlinedButton(
-            onClick = {
-                gameEngine.startRace("track_tutorial")
-                onNavigateToRace()
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFD600))
-        ) {
-            Text(
-                text = "PLAY RACE TUTORIAL 🔰",
-                color = Color(0xFFFFD600),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
         Spacer(modifier = Modifier.height(24.dp))
 
         // Bottom Navigation Quick Cards

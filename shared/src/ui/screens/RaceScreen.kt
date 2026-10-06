@@ -33,44 +33,67 @@ fun RaceScreen(
 ) {
     val race = gameEngine.activeRaceState ?: return
     var showTutorial by remember {
-        mutableStateOf(race.track.isTutorial || !gameEngine.saveData.completedTutorial)
+        mutableStateOf(race.track.isTutorial && !gameEngine.saveData.completedTutorial)
     }
 
     // Smooth Game Engine Update Loop
-    LaunchedEffect(showTutorial) {
-        if (!showTutorial) {
-            var lastFrameTimeNanos = 0L
-            while (true) {
-                withFrameNanos { frameTimeNanos ->
-                    if (lastFrameTimeNanos != 0L) {
-                        val deltaTimeSeconds = ((frameTimeNanos - lastFrameTimeNanos).toFloat() / 1_000_000_000f).coerceIn(0.001f, 0.05f)
+    LaunchedEffect(Unit) {
+        var lastFrameTimeNanos = 0L
+        while (true) {
+            withFrameNanos { frameTimeNanos ->
+                if (lastFrameTimeNanos != 0L) {
+                    val deltaTimeSeconds = ((frameTimeNanos - lastFrameTimeNanos).toFloat() / 1_000_000_000f).coerceIn(0.001f, 0.05f)
+                    if (!showTutorial) {
                         gameEngine.updateRace(deltaTimeSeconds)
                     }
-                    lastFrameTimeNanos = frameTimeNanos
                 }
+                lastFrameTimeNanos = frameTimeNanos
             }
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+        val isLandscape = maxWidth > maxHeight
+
         // 1. Arcade Track Canvas View
         ArcadeTrackCanvas(
             cornerProgress = race.cornerProgress,
             isInsideCorner = race.isInsideCorner,
             cornerDistance = race.nextCornerDistance,
+            cornerDirection = race.currentCornerDirection,
             isNitroActive = race.isNitroActive
         )
 
-        // 2. Car Canvas View Centered
+        // 2. Car Canvas View Following Track Curve & Steering Inputs
+        val dirMult = if (race.currentCornerDirection == com.driftgirls.model.CornerDirection.LEFT) -1f else 1f
+        val maxBendDp = if (isLandscape) 140.dp else 160.dp
+        val curveOffsetDp = if (race.isInsideCorner) {
+            (dirMult * kotlin.math.sin(race.cornerProgress * kotlin.math.PI.toFloat())).dp * maxBendDp.value
+        } else if (race.nextCornerDistance < 120f) {
+            (dirMult * ((120f - race.nextCornerDistance) / 120f)).dp * (maxBendDp.value * 0.4f)
+        } else {
+            0.dp
+        }
+
+        val roadCenterShift = curveOffsetDp * 0.70f
+        val steeringShift = when {
+            race.isDriftingLeft -> (-30).dp
+            race.isDriftingRight -> 30.dp
+            else -> 0.dp
+        }
+        val totalCarXOffset = roadCenterShift + steeringShift
+
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 190.dp)
+                .offset(x = totalCarXOffset)
+                .padding(bottom = if (isLandscape) 100.dp else 180.dp)
         ) {
             CarCanvas(
                 car = race.car,
                 driftAngle = race.driftAngle,
-                isNitroActive = race.isNitroActive
+                isNitroActive = race.isNitroActive,
+                modifier = Modifier.size(if (isLandscape) 140.dp else 180.dp, if (isLandscape) 170.dp else 220.dp)
             )
         }
 
@@ -80,7 +103,7 @@ fun RaceScreen(
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
                 .statusBarsPadding()
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = if (isLandscape) 6.dp else 16.dp)
         ) {
             // Distance Progress Bar
             val progress = (race.distanceTravelled / race.track.distanceMeters.toFloat()).coerceIn(0f, 1f)
@@ -98,7 +121,7 @@ fun RaceScreen(
                 Button(
                     onClick = onBackToHome,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp)
                 ) {
                     Text("EXIT", color = Color.White, fontSize = 10.sp)
                 }
@@ -108,14 +131,16 @@ fun RaceScreen(
                 progress = { progress },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(8.dp)
-                    .padding(top = 4.dp)
+                    .height(6.dp)
+                    .padding(top = 2.dp)
                     .clip(CircleShape),
                 color = Color(0xFF00E5FF),
                 trackColor = Color.White.copy(alpha = 0.2f)
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            if (!isLandscape) {
+                Spacer(modifier = Modifier.height(10.dp))
+            }
 
             // Speedometer & Nitro Bar
             Row(
@@ -129,15 +154,15 @@ fun RaceScreen(
                         Text(
                             text = "${race.currentSpeed.toInt()}",
                             color = if (race.isNitroActive) Color(0xFF00E5FF) else Color.White,
-                            fontSize = 32.sp,
+                            fontSize = if (isLandscape) 24.sp else 32.sp,
                             fontWeight = FontWeight.Black
                         )
                         Text(
                             text = " KM/H",
                             color = Color.White.copy(alpha = 0.7f),
-                            fontSize = 14.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 4.dp)
+                            modifier = Modifier.padding(bottom = 2.dp)
                         )
                     }
 
@@ -145,7 +170,7 @@ fun RaceScreen(
                         Text(
                             text = "🔥 ${race.comboMultiplier}x COMBO!",
                             color = Color(0xFFFFD600),
-                            fontSize = 14.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.ExtraBold
                         )
                     }
@@ -156,32 +181,30 @@ fun RaceScreen(
                     Text(
                         text = "DRIFT SCORE",
                         color = Color.White.copy(alpha = 0.6f),
-                        fontSize = 10.sp,
+                        fontSize = 9.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "${race.driftScore}",
                         color = Color(0xFFFF4081),
-                        fontSize = 24.sp,
+                        fontSize = if (isLandscape) 18.sp else 24.sp,
                         fontWeight = FontWeight.Black
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             // Nitro Bar
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("NITRO", color = Color(0xFF00E5FF), fontSize = 11.sp, fontWeight = FontWeight.Black)
-                Spacer(modifier = Modifier.width(8.dp))
+                Text("NITRO", color = Color(0xFF00E5FF), fontSize = 10.sp, fontWeight = FontWeight.Black)
+                Spacer(modifier = Modifier.width(6.dp))
                 LinearProgressIndicator(
                     progress = { race.nitroLevel / 100f },
                     modifier = Modifier
                         .weight(1f)
-                        .height(10.dp)
+                        .height(8.dp)
                         .clip(CircleShape),
                     color = Color(0xFF00E5FF),
                     trackColor = Color.Gray.copy(alpha = 0.3f)
@@ -193,7 +216,7 @@ fun RaceScreen(
         Row(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(top = 150.dp, start = 16.dp, end = 16.dp),
+                .padding(top = if (isLandscape) 75.dp else 150.dp, start = 16.dp, end = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             CompanionAvatarCanvas(
@@ -204,7 +227,7 @@ fun RaceScreen(
                     race.lastDriftRating == com.driftgirls.model.DriftRating.MISS -> "SURPRISED"
                     else -> "HAPPY"
                 },
-                modifier = Modifier.size(64.dp)
+                modifier = Modifier.size(if (isLandscape) 48.dp else 64.dp)
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -216,15 +239,15 @@ fun RaceScreen(
                             Brush.horizontalGradient(
                                 listOf(Color(0xFF880E4F), Color(0xFFAD1457))
                             ),
-                            shape = RoundedCornerShape(16.dp)
+                            shape = RoundedCornerShape(14.dp)
                         )
-                        .border(1.5.dp, Color(0xFFFF80AB), RoundedCornerShape(16.dp))
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .border(1.5.dp, Color(0xFFFF80AB), RoundedCornerShape(14.dp))
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
                 ) {
                     Text(
                         text = speech,
                         color = Color.White,
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -236,7 +259,7 @@ fun RaceScreen(
             Column(
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .padding(bottom = 20.dp),
+                    .padding(bottom = if (isLandscape) 10.dp else 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val countdownText = if (race.countdownTimer > 0.8f) {
@@ -248,45 +271,43 @@ fun RaceScreen(
                 Text(
                     text = countdownText,
                     color = Color(0xFFFFD600),
-                    fontSize = 68.sp,
+                    fontSize = if (isLandscape) 48.sp else 68.sp,
                     fontWeight = FontWeight.Black
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Card(
-                    modifier = Modifier.width(300.dp),
-                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier.width(if (isLandscape) 250.dp else 300.dp),
+                    shape = RoundedCornerShape(18.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.85f)),
                     border = androidx.compose.foundation.BorderStroke(2.dp, Color(0xFF00E5FF))
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.padding(12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
                             text = "ENGINE TACHOMETER",
                             color = Color.White.copy(alpha = 0.7f),
-                            fontSize = 11.sp,
+                            fontSize = 10.sp,
                             fontWeight = FontWeight.Bold
                         )
-
-                        Spacer(modifier = Modifier.height(8.dp))
 
                         val inGreenZone = race.engineRpm in 6400f..7300f
                         Text(
                             text = "${race.engineRpm.toInt()} RPM",
                             color = if (inGreenZone) Color(0xFF76FF03) else Color.White,
-                            fontSize = 32.sp,
+                            fontSize = if (isLandscape) 22.sp else 32.sp,
                             fontWeight = FontWeight.Black
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
 
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(22.dp)
+                                .height(18.dp)
                                 .clip(CircleShape)
                                 .background(Color.Gray.copy(alpha = 0.3f))
                         ) {
@@ -301,12 +322,12 @@ fun RaceScreen(
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
                             text = "🎯 TARGET: 6,400 - 7,300 RPM (GREEN ZONE)",
                             color = Color(0xFFFFD600),
-                            fontSize = 11.sp,
+                            fontSize = 10.sp,
                             fontWeight = FontWeight.ExtraBold
                         )
                     }
@@ -319,92 +340,58 @@ fun RaceScreen(
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .padding(bottom = 60.dp)
+                    .padding(bottom = 50.dp)
                     .background(
                         Color(rating.colorHex).copy(alpha = 0.9f),
                         shape = RoundedCornerShape(12.dp)
                     )
                     .border(2.dp, Color.White, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 24.dp, vertical = 10.dp)
+                    .padding(horizontal = 20.dp, vertical = 8.dp)
             ) {
                 Text(
                     text = rating.label,
                     color = Color.White,
-                    fontSize = 28.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Black
                 )
             }
         }
 
-        // 7. Corner Approach Direction Alert (During Racing)
-        if (race.racePhase == RacePhase.RACING && (race.isInsideCorner || race.nextCornerDistance < 90f)) {
-            Text(
-                text = if (race.isInsideCorner) "⚡ DRIFT NOW!! ⚡" else "◀ CORNER APPROACHING ▶",
-                color = if (race.isInsideCorner) Color(0xFFFFD600) else Color(0xFF00E5FF),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Black,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(top = 80.dp)
-                    .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(8.dp))
-                    .padding(horizontal = 16.dp, vertical = 6.dp)
-            )
-        }
-
-        // 8. Interactive Controls Overlay (Bottom)
-        if (race.racePhase == RacePhase.COUNTDOWN) {
-            // Countdown Phase: Accelerator Pedal Button
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .navigationBarsPadding()
-                    .padding(24.dp),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(130.dp, 100.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(
-                            if (race.isAccelerating) Color(0xFF76FF03) else Color(0xFF00E5FF)
-                        )
-                        .border(3.dp, Color.White, RoundedCornerShape(24.dp))
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onPress = {
-                                    gameEngine.setAccelerating(true)
-                                    tryAwaitRelease()
-                                    gameEngine.setAccelerating(false)
-                                }
-                            )
-                        },
-                    contentAlignment = Alignment.Center
+        // 7. Interactive Controls Overlay (Bottom)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = if (isLandscape) 8.dp else 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            // Left Controls Column: NITRO on TOP of DRIFT LEFT!
+            Column(horizontalAlignment = Alignment.Start) {
+                // NITRO Boost Button (positioned directly ABOVE drift left!)
+                Button(
+                    onClick = { gameEngine.activateNitro() },
+                    modifier = Modifier.size(if (isLandscape) 95.dp else 110.dp, if (isLandscape) 46.dp else 56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (race.nitroLevel >= 25f) Color(0xFF00E5FF) else Color.Gray
+                    ),
+                    contentPadding = PaddingValues(0.dp),
+                    elevation = ButtonDefaults.buttonElevation(8.dp)
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("🏎️", fontSize = 28.sp)
-                        Text("ACCELERATE", color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Black)
-                    }
+                    Text("⚡ NITRO", color = Color.Black, fontSize = 13.sp, fontWeight = FontWeight.Black)
                 }
-            }
-        } else {
-            // Racing Phase: Drift Pads & Nitro Controls
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .navigationBarsPadding()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Drift Left Pad
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // DRIFT LEFT Pad
                 Box(
                     modifier = Modifier
-                        .size(110.dp, 80.dp)
+                        .size(if (isLandscape) 110.dp else 110.dp, if (isLandscape) 64.dp else 80.dp)
                         .clip(RoundedCornerShape(20.dp))
                         .background(
-                            if (race.isDriftingLeft) Color(0xFFFF007F) else Color(0xFFFF007F).copy(alpha = 0.4f)
+                            if (race.isDriftingLeft) Color(0xFFFF007F) else Color(0xFFFF007F).copy(alpha = 0.45f)
                         )
                         .border(2.dp, Color.White, RoundedCornerShape(20.dp))
                         .pointerInput(Unit) {
@@ -418,29 +405,50 @@ fun RaceScreen(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("◄ DRIFT", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                    Text("◄ DRIFT", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Black)
+                }
+            }
+
+            // Right Controls Column: GAS button (visible ONLY during COUNTDOWN, hidden during RACING) on TOP of DRIFT RIGHT!
+            Column(horizontalAlignment = Alignment.End) {
+                if (race.racePhase == RacePhase.COUNTDOWN) {
+                    // ACCELERATE / GAS Button (visible ONLY during countdown phase!)
+                    Box(
+                        modifier = Modifier
+                            .size(if (isLandscape) 100.dp else 110.dp, if (isLandscape) 46.dp else 56.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(
+                                if (race.isAccelerating) Color(0xFF76FF03) else Color(0xFF00E5FF).copy(alpha = 0.85f)
+                            )
+                            .border(2.5.dp, Color.White, RoundedCornerShape(16.dp))
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onPress = {
+                                        gameEngine.setAccelerating(true)
+                                        tryAwaitRelease()
+                                        gameEngine.setAccelerating(false)
+                                    }
+                                )
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("🏎️", fontSize = 15.sp)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("GAS", color = Color.Black, fontSize = 13.sp, fontWeight = FontWeight.Black)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                // Nitro Boost Button
-                Button(
-                    onClick = { gameEngine.activateNitro() },
-                    modifier = Modifier.size(90.dp),
-                    shape = CircleShape,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (race.nitroLevel >= 25f) Color(0xFF00E5FF) else Color.Gray
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(8.dp)
-                ) {
-                    Text("⚡\nNITRO", color = Color.Black, fontSize = 13.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
-                }
-
-                // Drift Right Pad
+                // DRIFT RIGHT Pad
                 Box(
                     modifier = Modifier
-                        .size(110.dp, 80.dp)
+                        .size(if (isLandscape) 110.dp else 110.dp, if (isLandscape) 64.dp else 80.dp)
                         .clip(RoundedCornerShape(20.dp))
                         .background(
-                            if (race.isDriftingRight) Color(0xFFFF007F) else Color(0xFFFF007F).copy(alpha = 0.4f)
+                            if (race.isDriftingRight) Color(0xFFFF007F) else Color(0xFFFF007F).copy(alpha = 0.45f)
                         )
                         .border(2.dp, Color.White, RoundedCornerShape(20.dp))
                         .pointerInput(Unit) {
@@ -454,12 +462,12 @@ fun RaceScreen(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("DRIFT ►", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                    Text("DRIFT ►", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Black)
                 }
             }
         }
 
-        // 9. Tutorial Overlay Dialog
+        // 8. Tutorial Overlay Dialog
         if (showTutorial) {
             Box(
                 modifier = Modifier
@@ -469,56 +477,56 @@ fun RaceScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(if (isLandscape) 0.7f else 1f),
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1035))
                 ) {
                     Column(
-                        modifier = Modifier.padding(24.dp),
+                        modifier = Modifier.padding(20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         CompanionAvatarCanvas(
                             companion = race.companion,
                             expression = "EXCITED",
-                            modifier = Modifier.size(80.dp)
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Text(
-                            text = "RACE TUTORIAL",
-                            color = Color(0xFFFFD600),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Black
+                            modifier = Modifier.size(64.dp)
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = "1. During 5s countdown, hold ACCELERATE to keep RPM in the GREEN ZONE (6,400 - 7,300 RPM) for a PERFECT LAUNCH!\n\n" +
+                            text = "RACE TUTORIAL",
+                            color = Color(0xFFFFD600),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Black
+                        )
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Text(
+                            text = "1. During 5s countdown, hold GAS 🏎️ to keep RPM in the GREEN ZONE (6,400 - 7,300 RPM) for a PERFECT LAUNCH!\n\n" +
                                     "2. Tap & hold ◄ DRIFT or DRIFT ► in corners for high-score drifts!\n\n" +
                                     "3. Perfect timing awards PERFECT and GREAT drift ratings to charge your Nitro!\n\n" +
                                     "4. Hit ⚡ NITRO to burst into top speeds!",
                             color = Color.White,
-                            fontSize = 13.sp,
-                            lineHeight = 18.sp
+                            fontSize = 12.sp,
+                            lineHeight = 16.sp
                         )
 
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
                         Button(
                             onClick = { showTutorial = false },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF007F))
                         ) {
-                            Text("LET'S RACE!!", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            Text("LET'S RACE!!", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                         }
                     }
                 }
             }
         }
 
-        // 10. Race Finish Victory Dialog
+        // 9. Race Finish Victory Dialog
         if (race.isFinished) {
             Box(
                 modifier = Modifier
@@ -528,32 +536,32 @@ fun RaceScreen(
             ) {
                 Card(
                     modifier = Modifier
-                        .fillMaxWidth(0.9f)
+                        .fillMaxWidth(if (isLandscape) 0.65f else 0.9f)
                         .padding(16.dp),
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1228))
                 ) {
                     Column(
-                        modifier = Modifier.padding(24.dp),
+                        modifier = Modifier.padding(20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
                             text = "RACE FINISHED!!",
                             color = Color(0xFFFFD600),
-                            fontSize = 24.sp,
+                            fontSize = 22.sp,
                             fontWeight = FontWeight.Black
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
 
                         // Stars
                         Text(
                             text = "★".repeat(race.starsEarned) + "☆".repeat(3 - race.starsEarned),
                             color = Color(0xFFFFDD00),
-                            fontSize = 36.sp
+                            fontSize = 32.sp
                         )
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
                         // Rewards
                         Row(
@@ -562,19 +570,19 @@ fun RaceScreen(
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("CASH", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                Text("+$${race.earnedCash}", color = Color(0xFF76FF03), fontSize = 18.sp, fontWeight = FontWeight.Black)
+                                Text("+$${race.earnedCash}", color = Color(0xFF76FF03), fontSize = 16.sp, fontWeight = FontWeight.Black)
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("GEMS", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                Text("+${race.earnedGems} 💎", color = Color(0xFF00E5FF), fontSize = 18.sp, fontWeight = FontWeight.Black)
+                                Text("+${race.earnedGems} 💎", color = Color(0xFF00E5FF), fontSize = 16.sp, fontWeight = FontWeight.Black)
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("AFFECTION", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                Text("+${race.earnedAffection} 💕", color = Color(0xFFFF4081), fontSize = 18.sp, fontWeight = FontWeight.Black)
+                                Text("+${race.earnedAffection} 💕", color = Color(0xFFFF4081), fontSize = 16.sp, fontWeight = FontWeight.Black)
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(18.dp))
 
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             OutlinedButton(

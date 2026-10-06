@@ -213,38 +213,50 @@ object GameDataDefaults {
     )
 }
 
-data class ActiveRaceState(
+class ActiveRaceState(
     val track: RaceTrack,
     val car: Car,
     val companion: GirlCompanion,
-    var racePhase: RacePhase = RacePhase.COUNTDOWN,
-    var countdownTimer: Float = 5.0f,
-    var engineRpm: Float = 1000f,
-    var isAccelerating: Boolean = false,
-    var launchRating: DriftRating? = null,
-    var distanceTravelled: Float = 0f,
-    var currentSpeed: Float = 0f,
-    var nitroLevel: Float = 50f,
-    var isNitroActive: Boolean = false,
-    var isDriftingLeft: Boolean = false,
-    var isDriftingRight: Boolean = false,
-    var driftAngle: Float = 0f,
-    var currentCornerIndex: Int = 0,
-    var nextCornerDistance: Float = 150f,
-    var isInsideCorner: Boolean = false,
-    var cornerProgress: Float = 0f,
-    var lastDriftRating: DriftRating? = null,
-    var ratingDisplayTimer: Float = 0f,
-    var driftScore: Int = 0,
-    var comboMultiplier: Int = 1,
-    var companionSpeech: String? = null,
-    var companionSpeechTimer: Float = 0f,
-    var isFinished: Boolean = false,
-    var starsEarned: Int = 0,
-    var earnedCash: Int = 0,
-    var earnedGems: Int = 0,
-    var earnedAffection: Int = 0
-)
+    initialRacePhase: RacePhase = RacePhase.COUNTDOWN,
+    initialCountdownTimer: Float = 5.0f,
+    initialEngineRpm: Float = 1000f,
+    initialCurrentSpeed: Float = 0f,
+    initialNextCornerDistance: Float = 220f,
+    initialCompanionSpeech: String? = null,
+    initialCompanionSpeechTimer: Float = 0f
+) {
+    var racePhase by mutableStateOf(initialRacePhase)
+    var countdownTimer by mutableStateOf(initialCountdownTimer)
+    var engineRpm by mutableStateOf(initialEngineRpm)
+    var isAccelerating by mutableStateOf(false)
+    var launchRating by mutableStateOf<DriftRating?>(null)
+    var distanceTravelled by mutableStateOf(0f)
+    var currentSpeed by mutableStateOf(initialCurrentSpeed)
+    var nitroLevel by mutableStateOf(50f)
+    var isNitroActive by mutableStateOf(false)
+    var isDriftingLeft by mutableStateOf(false)
+    var isDriftingRight by mutableStateOf(false)
+    var driftAngle by mutableStateOf(0f)
+    var currentCornerIndex by mutableStateOf(0)
+    var currentCornerDirection by mutableStateOf(CornerDirection.RIGHT)
+    var currentCornerLength by mutableStateOf(CornerLength.MEDIUM)
+    var nextCornerDistance by mutableStateOf(initialNextCornerDistance)
+    var isInsideCorner by mutableStateOf(false)
+    var cornerProgress by mutableStateOf(0f)
+    var entryDriftRating by mutableStateOf<DriftRating?>(null)
+    var exitDriftRating by mutableStateOf<DriftRating?>(null)
+    var lastDriftRating by mutableStateOf<DriftRating?>(null)
+    var ratingDisplayTimer by mutableStateOf(0f)
+    var driftScore by mutableStateOf(0)
+    var comboMultiplier by mutableStateOf(1)
+    var companionSpeech by mutableStateOf<String?>(initialCompanionSpeech)
+    var companionSpeechTimer by mutableStateOf(initialCompanionSpeechTimer)
+    var isFinished by mutableStateOf(false)
+    var starsEarned by mutableStateOf(0)
+    var earnedCash by mutableStateOf(0)
+    var earnedGems by mutableStateOf(0)
+    var earnedAffection by mutableStateOf(0)
+}
 
 class GameEngine {
     var saveData by mutableStateOf(GameSaveData())
@@ -282,13 +294,13 @@ class GameEngine {
             track = track,
             car = car,
             companion = companion,
-            racePhase = RacePhase.COUNTDOWN,
-            countdownTimer = 5.0f,
-            engineRpm = 1000f,
-            currentSpeed = 0f,
-            nextCornerDistance = 220f,
-            companionSpeech = "Hold ACCELERATE to rev RPM into the green sweet spot for a PERFECT LAUNCH!",
-            companionSpeechTimer = 5.0f
+            initialRacePhase = RacePhase.COUNTDOWN,
+            initialCountdownTimer = 5.0f,
+            initialEngineRpm = 1000f,
+            initialCurrentSpeed = 0f,
+            initialNextCornerDistance = 220f,
+            initialCompanionSpeech = "Hold ACCELERATE to rev RPM into the green sweet spot for a PERFECT LAUNCH!",
+            initialCompanionSpeechTimer = 5.0f
         )
     }
 
@@ -364,14 +376,21 @@ class GameEngine {
         if (race.nextCornerDistance <= 0f && !race.isInsideCorner) {
             race.isInsideCorner = true
             race.cornerProgress = 0f
+            race.entryDriftRating = null
+            race.exitDriftRating = null
         }
 
         if (race.isInsideCorner) {
-            race.cornerProgress += deltaTimeSeconds * 0.8f
+            val speedFactor = (race.currentSpeed / 200f).coerceIn(0.6f, 1.8f)
+            race.cornerProgress += deltaTimeSeconds * race.currentCornerLength.progressRate * speedFactor
             if (race.cornerProgress >= 1f) {
                 race.isInsideCorner = false
                 race.currentCornerIndex++
                 race.nextCornerDistance = 180f + (kotlin.random.Random.nextFloat() * 80f)
+                // Pre-determine direction and varied duration length for upcoming corner!
+                race.currentCornerDirection = if (race.currentCornerIndex % 2 == 0) CornerDirection.RIGHT else CornerDirection.LEFT
+                val lengths = CornerLength.entries
+                race.currentCornerLength = lengths[race.currentCornerIndex % lengths.size]
             }
         }
 
@@ -462,20 +481,21 @@ class GameEngine {
 
         if (isLeft) race.isDriftingLeft = true else race.isDriftingRight = true
 
-        // Evaluate Drift Timing relative to corner progress
+        // Corner Entry Timing Evaluation
         val rating = if (race.isInsideCorner) {
             when (race.cornerProgress) {
-                in 0.25f..0.65f -> DriftRating.PERFECT
-                in 0.15f..0.80f -> DriftRating.GREAT
-                in 0.05f..0.95f -> DriftRating.GOOD
+                in 0.10f..0.35f -> DriftRating.PERFECT
+                in 0.05f..0.50f -> DriftRating.GREAT
+                in 0.00f..0.65f -> DriftRating.GOOD
                 else -> DriftRating.LATE
             }
-        } else if (race.nextCornerDistance < 50f) {
+        } else if (race.nextCornerDistance < 80f) {
             DriftRating.GREAT
         } else {
-            DriftRating.MISS
+            DriftRating.GOOD
         }
 
+        race.entryDriftRating = rating
         race.lastDriftRating = rating
         race.ratingDisplayTimer = 1.8f
 
@@ -484,23 +504,44 @@ class GameEngine {
         val addedScore = (baseScore * rating.scoreMultiplier * race.comboMultiplier).toInt()
         race.driftScore += addedScore
 
-        if (rating != DriftRating.MISS) {
-            race.comboMultiplier = min(10, race.comboMultiplier + 1)
-            race.nitroLevel = min(100f, race.nitroLevel + rating.nitroBonus)
+        race.comboMultiplier = min(10, race.comboMultiplier + 1)
+        race.nitroLevel = min(100f, race.nitroLevel + rating.nitroBonus)
 
-            // Companion Reaction
-            val speech = race.companion.dialogueLines.random()
-            race.companionSpeech = "${rating.label} $speech"
-            race.companionSpeechTimer = 2.5f
-        } else {
-            race.comboMultiplier = 1
-            race.companionSpeech = "Watch out for the corner!"
-            race.companionSpeechTimer = 2.0f
-        }
+        // Companion Reaction
+        val speech = race.companion.dialogueLines.random()
+        race.companionSpeech = "${rating.label} ENTRY! $speech"
+        race.companionSpeechTimer = 2.5f
     }
 
     fun releaseDrift() {
         val race = activeRaceState ?: return
+
+        // Evaluate Corner Exit Timing if inside corner and entry was initiated
+        if (race.isInsideCorner && race.entryDriftRating != null && race.exitDriftRating == null) {
+            val exitRating = when (race.cornerProgress) {
+                in 0.68f..0.88f -> DriftRating.PERFECT
+                in 0.58f..0.93f -> DriftRating.GREAT
+                in 0.48f..0.98f -> DriftRating.GOOD
+                else -> DriftRating.LATE
+            }
+
+            race.exitDriftRating = exitRating
+            race.lastDriftRating = exitRating
+            race.ratingDisplayTimer = 2.0f
+
+            // Double Perfect or Combined Corner Bonus!
+            if (race.entryDriftRating == DriftRating.PERFECT && exitRating == DriftRating.PERFECT) {
+                race.driftScore += 2500
+                race.nitroLevel = min(100f, race.nitroLevel + 50f)
+                race.comboMultiplier = min(10, race.comboMultiplier + 2)
+                race.companionSpeech = "DOUBLE PERFECT DRIFT!! MAGNIFICENT!! 🚀"
+            } else {
+                race.driftScore += (600 * exitRating.scoreMultiplier).toInt()
+                race.companionSpeech = "${exitRating.label} EXIT!!"
+            }
+            race.companionSpeechTimer = 2.5f
+        }
+
         race.isDriftingLeft = false
         race.isDriftingRight = false
     }

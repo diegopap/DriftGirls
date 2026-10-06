@@ -19,6 +19,18 @@ enum class RacePhase {
     FINISHED
 }
 
+enum class CornerDirection {
+    LEFT,
+    RIGHT
+}
+
+enum class CornerLength(val label: String, val progressRate: Float) {
+    SHORT("SHARP CHICANE", 1.30f),
+    MEDIUM("STANDARD HAIRPIN", 0.75f),
+    LONG("SWEEPING ARC", 0.45f),
+    ULTRA_LONG("ENDURANCE BEND", 0.30f)
+}
+
 enum class CompanionBonusType(val description: String) {
     NITRO_RECHARGE("Faster Nitro Recharge"),
     DRIFT_SCORE_MULTIPLIER("Bonus Drift Score Multiplier"),
