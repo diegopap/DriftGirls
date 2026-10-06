@@ -217,6 +217,11 @@ data class ActiveRaceState(
     val track: RaceTrack,
     val car: Car,
     val companion: GirlCompanion,
+    var racePhase: RacePhase = RacePhase.COUNTDOWN,
+    var countdownTimer: Float = 5.0f,
+    var engineRpm: Float = 1000f,
+    var isAccelerating: Boolean = false,
+    var launchRating: DriftRating? = null,
     var distanceTravelled: Float = 0f,
     var currentSpeed: Float = 0f,
     var nitroLevel: Float = 50f,
@@ -277,18 +282,51 @@ class GameEngine {
             track = track,
             car = car,
             companion = companion,
-            currentSpeed = 80f,
-            nextCornerDistance = 200f,
-            companionSpeech = "Let's win this race together! GO!!",
-            companionSpeechTimer = 3.0f
+            racePhase = RacePhase.COUNTDOWN,
+            countdownTimer = 5.0f,
+            engineRpm = 1000f,
+            currentSpeed = 0f,
+            nextCornerDistance = 220f,
+            companionSpeech = "Hold ACCELERATE to rev RPM into the green sweet spot for a PERFECT LAUNCH!",
+            companionSpeechTimer = 5.0f
         )
+    }
+
+    fun setAccelerating(accelerating: Boolean) {
+        activeRaceState?.isAccelerating = accelerating
     }
 
     fun updateRace(deltaTimeSeconds: Float) {
         val race = activeRaceState ?: return
         if (race.isFinished) return
 
-        // Speed logic
+        if (race.racePhase == RacePhase.COUNTDOWN) {
+            // Update 5-second launch countdown & engine RPM
+            race.countdownTimer -= deltaTimeSeconds
+
+            // Rev Engine RPM when holding accelerator
+            if (race.isAccelerating) {
+                race.engineRpm = min(9000f, race.engineRpm + 6500f * deltaTimeSeconds)
+            } else {
+                race.engineRpm = max(1000f, race.engineRpm - 4500f * deltaTimeSeconds)
+            }
+
+            // Speech timer
+            if (race.companionSpeechTimer > 0f) {
+                race.companionSpeechTimer -= deltaTimeSeconds
+                if (race.companionSpeechTimer <= 0f) {
+                    race.companionSpeech = null
+                }
+            }
+
+            // When countdown reaches 0: Launch!
+            if (race.countdownTimer <= 0f) {
+                evaluateStartLaunch()
+            }
+            return
+        }
+
+        // --- RACING PHASE ---
         val companionAffection = race.companion.affection.toFloat()
         val maxSpeed = race.car.effectiveTopSpeed(companionAffection).toFloat()
 
@@ -364,6 +402,58 @@ class GameEngine {
         if (race.distanceTravelled >= race.track.distanceMeters) {
             finishRace()
         }
+    }
+
+    private fun evaluateStartLaunch() {
+        val race = activeRaceState ?: return
+        race.racePhase = RacePhase.RACING
+        
+        val companionAffection = race.companion.affection.toFloat()
+        val maxSpeed = race.car.effectiveTopSpeed(companionAffection).toFloat()
+
+        // Target sweet spot: 6400 - 7300 RPM
+        val rpm = race.engineRpm
+        val rating = when (rpm) {
+            in 6400f..7300f -> DriftRating.PERFECT
+            in 5800f..7800f -> DriftRating.GREAT
+            in 4800f..8300f -> DriftRating.GOOD
+            in 3500f..8700f -> DriftRating.LATE
+            else -> DriftRating.MISS
+        }
+
+        race.launchRating = rating
+        race.lastDriftRating = rating
+        race.ratingDisplayTimer = 2.5f
+
+        when (rating) {
+            DriftRating.PERFECT -> {
+                race.currentSpeed = maxSpeed * 0.7f
+                race.driftScore += 1500
+                race.nitroLevel = min(100f, race.nitroLevel + 50f)
+                race.companionSpeech = "PERFECT LAUNCH!! ROCKET START!!"
+            }
+            DriftRating.GREAT -> {
+                race.currentSpeed = maxSpeed * 0.55f
+                race.driftScore += 1000
+                race.nitroLevel = min(100f, race.nitroLevel + 30f)
+                race.companionSpeech = "GREAT START!! Let's go!!"
+            }
+            DriftRating.GOOD -> {
+                race.currentSpeed = maxSpeed * 0.4f
+                race.driftScore += 500
+                race.nitroLevel = min(100f, race.nitroLevel + 15f)
+                race.companionSpeech = "Good start! Accelerating!"
+            }
+            DriftRating.LATE -> {
+                race.currentSpeed = maxSpeed * 0.25f
+                race.companionSpeech = "Late start! Pick up speed!"
+            }
+            DriftRating.MISS -> {
+                race.currentSpeed = 30f
+                race.companionSpeech = "Wheelspin / Engine stall!! Recover!!"
+            }
+        }
+        race.companionSpeechTimer = 3.0f
     }
 
     fun triggerDrift(isLeft: Boolean) {

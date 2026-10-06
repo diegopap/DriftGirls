@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -21,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.driftgirls.engine.GameEngine
+import com.driftgirls.model.RacePhase
 import com.driftgirls.ui.graphics.ArcadeTrackCanvas
 import com.driftgirls.ui.graphics.CarCanvas
 import com.driftgirls.ui.graphics.CompanionAvatarCanvas
@@ -231,7 +231,90 @@ fun RaceScreen(
             }
         }
 
-        // 5. Drift Rating Flash Badge
+        // 5. Start Countdown Overlay & Tachometer Gauge (During Countdown)
+        if (race.racePhase == RacePhase.COUNTDOWN) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(bottom = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                val countdownText = if (race.countdownTimer > 0.8f) {
+                    "${race.countdownTimer.toInt()}"
+                } else {
+                    "GO!!"
+                }
+
+                Text(
+                    text = countdownText,
+                    color = Color(0xFFFFD600),
+                    fontSize = 68.sp,
+                    fontWeight = FontWeight.Black
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Card(
+                    modifier = Modifier.width(300.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.85f)),
+                    border = androidx.compose.foundation.BorderStroke(2.dp, Color(0xFF00E5FF))
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "ENGINE TACHOMETER",
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        val inGreenZone = race.engineRpm in 6400f..7300f
+                        Text(
+                            text = "${race.engineRpm.toInt()} RPM",
+                            color = if (inGreenZone) Color(0xFF76FF03) else Color.White,
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.Black
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(22.dp)
+                                .clip(CircleShape)
+                                .background(Color.Gray.copy(alpha = 0.3f))
+                        ) {
+                            // Current RPM fill
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .fillMaxWidth((race.engineRpm / 9000f).coerceIn(0f, 1f))
+                                    .background(
+                                        if (inGreenZone) Color(0xFF76FF03) else Color(0xFFFF007F)
+                                    )
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "🎯 TARGET: 6,400 - 7,300 RPM (GREEN ZONE)",
+                            color = Color(0xFFFFD600),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+                }
+            }
+        }
+
+        // 6. Drift Rating Flash Badge
         race.lastDriftRating?.let { rating ->
             Box(
                 modifier = Modifier
@@ -253,8 +336,8 @@ fun RaceScreen(
             }
         }
 
-        // 6. Corner Approach Direction Alert
-        if (race.isInsideCorner || race.nextCornerDistance < 90f) {
+        // 7. Corner Approach Direction Alert (During Racing)
+        if (race.racePhase == RacePhase.RACING && (race.isInsideCorner || race.nextCornerDistance < 90f)) {
             Text(
                 text = if (race.isInsideCorner) "⚡ DRIFT NOW!! ⚡" else "◀ CORNER APPROACHING ▶",
                 color = if (race.isInsideCorner) Color(0xFFFFD600) else Color(0xFF00E5FF),
@@ -268,77 +351,115 @@ fun RaceScreen(
             )
         }
 
-        // 7. Interactive Controls Overlay (Bottom)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Drift Left Pad
+        // 8. Interactive Controls Overlay (Bottom)
+        if (race.racePhase == RacePhase.COUNTDOWN) {
+            // Countdown Phase: Accelerator Pedal Button
             Box(
                 modifier = Modifier
-                    .size(110.dp, 80.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(
-                        if (race.isDriftingLeft) Color(0xFFFF007F) else Color(0xFFFF007F).copy(alpha = 0.4f)
-                    )
-                    .border(2.dp, Color.White, RoundedCornerShape(20.dp))
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onPress = {
-                                gameEngine.triggerDrift(isLeft = true)
-                                tryAwaitRelease()
-                                gameEngine.releaseDrift()
-                            }
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(24.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(130.dp, 100.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(
+                            if (race.isAccelerating) Color(0xFF76FF03) else Color(0xFF00E5FF)
                         )
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Text("◄ DRIFT", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                        .border(3.dp, Color.White, RoundedCornerShape(24.dp))
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onPress = {
+                                    gameEngine.setAccelerating(true)
+                                    tryAwaitRelease()
+                                    gameEngine.setAccelerating(false)
+                                }
+                            )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("🏎️", fontSize = 28.sp)
+                        Text("ACCELERATE", color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Black)
+                    }
+                }
             }
-
-            // Nitro Boost Button
-            Button(
-                onClick = { gameEngine.activateNitro() },
-                modifier = Modifier.size(90.dp),
-                shape = CircleShape,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (race.nitroLevel >= 25f) Color(0xFF00E5FF) else Color.Gray
-                ),
-                elevation = ButtonDefaults.buttonElevation(8.dp)
-            ) {
-                Text("⚡\nNITRO", color = Color.Black, fontSize = 13.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
-            }
-
-            // Drift Right Pad
-            Box(
+        } else {
+            // Racing Phase: Drift Pads & Nitro Controls
+            Row(
                 modifier = Modifier
-                    .size(110.dp, 80.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(
-                        if (race.isDriftingRight) Color(0xFFFF007F) else Color(0xFFFF007F).copy(alpha = 0.4f)
-                    )
-                    .border(2.dp, Color.White, RoundedCornerShape(20.dp))
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onPress = {
-                                gameEngine.triggerDrift(isLeft = false)
-                                tryAwaitRelease()
-                                gameEngine.releaseDrift()
-                            }
-                        )
-                    },
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("DRIFT ►", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                // Drift Left Pad
+                Box(
+                    modifier = Modifier
+                        .size(110.dp, 80.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(
+                            if (race.isDriftingLeft) Color(0xFFFF007F) else Color(0xFFFF007F).copy(alpha = 0.4f)
+                        )
+                        .border(2.dp, Color.White, RoundedCornerShape(20.dp))
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onPress = {
+                                    gameEngine.triggerDrift(isLeft = true)
+                                    tryAwaitRelease()
+                                    gameEngine.releaseDrift()
+                                }
+                            )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("◄ DRIFT", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                }
+
+                // Nitro Boost Button
+                Button(
+                    onClick = { gameEngine.activateNitro() },
+                    modifier = Modifier.size(90.dp),
+                    shape = CircleShape,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (race.nitroLevel >= 25f) Color(0xFF00E5FF) else Color.Gray
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(8.dp)
+                ) {
+                    Text("⚡\nNITRO", color = Color.Black, fontSize = 13.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
+                }
+
+                // Drift Right Pad
+                Box(
+                    modifier = Modifier
+                        .size(110.dp, 80.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(
+                            if (race.isDriftingRight) Color(0xFFFF007F) else Color(0xFFFF007F).copy(alpha = 0.4f)
+                        )
+                        .border(2.dp, Color.White, RoundedCornerShape(20.dp))
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onPress = {
+                                    gameEngine.triggerDrift(isLeft = false)
+                                    tryAwaitRelease()
+                                    gameEngine.releaseDrift()
+                                }
+                            )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("DRIFT ►", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                }
             }
         }
 
-        // 8. Tutorial Overlay Dialog
+        // 9. Tutorial Overlay Dialog
         if (showTutorial) {
             Box(
                 modifier = Modifier
@@ -374,10 +495,10 @@ fun RaceScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = "1. Tap & hold ◄ DRIFT or DRIFT ► when approaching corners to execute high-score drifts!\n\n" +
-                                    "2. Perfect timing awards PERFECT and GREAT drift ratings to charge your Nitro!\n\n" +
-                                    "3. Hit ⚡ NITRO to burst into top speeds!\n\n" +
-                                    "4. ${race.companion.name} grants passive bonuses and cheers for you!",
+                            text = "1. During 5s countdown, hold ACCELERATE to keep RPM in the GREEN ZONE (6,400 - 7,300 RPM) for a PERFECT LAUNCH!\n\n" +
+                                    "2. Tap & hold ◄ DRIFT or DRIFT ► in corners for high-score drifts!\n\n" +
+                                    "3. Perfect timing awards PERFECT and GREAT drift ratings to charge your Nitro!\n\n" +
+                                    "4. Hit ⚡ NITRO to burst into top speeds!",
                             color = Color.White,
                             fontSize = 13.sp,
                             lineHeight = 18.sp
@@ -397,7 +518,7 @@ fun RaceScreen(
             }
         }
 
-        // 9. Race Finish Victory Dialog
+        // 10. Race Finish Victory Dialog
         if (race.isFinished) {
             Box(
                 modifier = Modifier

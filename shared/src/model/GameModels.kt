@@ -13,6 +13,12 @@ enum class DriftRating(
     MISS("MISS", 0.2f, 0f, 0xFFFF3D00)         // Orange Red
 }
 
+enum class RacePhase {
+    COUNTDOWN,
+    RACING,
+    FINISHED
+}
+
 enum class CompanionBonusType(val description: String) {
     NITRO_RECHARGE("Faster Nitro Recharge"),
     DRIFT_SCORE_MULTIPLIER("Bonus Drift Score Multiplier"),
