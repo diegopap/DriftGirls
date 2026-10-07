@@ -252,19 +252,30 @@ fun ArcadeTrackCanvas(
         )
         drawRect(skyGradient, topLeft = Offset.Zero, size = Size(w, h * 0.42f))
 
-        // Sun / Neon Grid City horizon line
+        // Neon Synthwave Sun in the Sky (above horizon)
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(Color(0xFFFF007F), Color(0xFFFF9100), Color.Transparent)
             ),
-            radius = w * 0.3f,
-            center = Offset(w * 0.5f, h * 0.42f)
+            radius = w * 0.22f,
+            center = Offset(w * 0.5f, h * 0.25f)
         )
 
-        // Ground / Road Perspective Slices
         val roadHorizonY = h * 0.42f
         val roadBottomY = h
 
+        // Cyberpunk Ground / Floor Gradient with Neon Perspective Grid
+        val groundGradient = Brush.verticalGradient(
+            colors = listOf(
+                Color(0xFF1B0038), // Dark purple near horizon
+                Color(0xFF0A0014)  // Darker near bottom
+            ),
+            startY = roadHorizonY,
+            endY = roadBottomY
+        )
+        drawRect(groundGradient, topLeft = Offset(0f, roadHorizonY), size = Size(w, h - roadHorizonY))
+
+        // Ground / Road Perspective Slices
         val roadTopWidth = w * 0.15f
         val roadBottomWidth = w * 0.92f
 
