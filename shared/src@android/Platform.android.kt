@@ -2,6 +2,8 @@ package com.driftgirls
 
 import android.content.Context
 import android.os.Build
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.Composable
 
 object AndroidContextHolder {
     var context: Context? = null
@@ -28,4 +30,9 @@ actual fun loadGameData(): String? {
 actual fun getFormattedCurrentDate(): String {
     val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
     return sdf.format(java.util.Date())
+}
+
+@Composable
+actual fun PlatformBackHandler(enabled: Boolean, onBack: () -> Unit) {
+    BackHandler(enabled = enabled, onBack = onBack)
 }

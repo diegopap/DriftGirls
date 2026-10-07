@@ -15,6 +15,7 @@ dependencies:
 
 dependencies@android:
   - $compose.uiTooling
+  - $libs.androidx.activity.compose
 
 settings:
   compose:

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,7 +26,34 @@ enum class Screen {
 @DevelopmentEntryPoint
 fun App() {
     val gameEngine = remember { GameEngine() }
-    var currentScreen by rememberSaveable { mutableStateOf(Screen.HOME) }
+    val backStack = remember { mutableStateListOf(Screen.HOME) }
+    val currentScreen = backStack.lastOrNull() ?: Screen.HOME
+
+    PlatformBackHandler(enabled = backStack.size > 1) {
+        if (backStack.size > 1) {
+            backStack.removeAt(backStack.size - 1)
+        }
+    }
+
+    val navigateTo: (Screen) -> Unit = { screen ->
+        if (screen == Screen.HOME) {
+            backStack.clear()
+            backStack.add(Screen.HOME)
+        } else {
+            if (backStack.lastOrNull() != screen) {
+                backStack.add(screen)
+            }
+        }
+    }
+
+    val goBack: () -> Unit = {
+        if (backStack.size > 1) {
+            backStack.removeAt(backStack.size - 1)
+        } else {
+            backStack.clear()
+            backStack.add(Screen.HOME)
+        }
+    }
 
     MaterialTheme {
         Surface(
@@ -38,37 +64,45 @@ fun App() {
                 when (screen) {
                     Screen.HOME -> HomeScreen(
                         gameEngine = gameEngine,
-                        onNavigateToRace = { currentScreen = Screen.TRACKS },
-                        onNavigateToGarage = { currentScreen = Screen.GARAGE },
-                        onNavigateToCompanions = { currentScreen = Screen.COMPANIONS },
-                        onNavigateToTracks = { currentScreen = Screen.TRACKS },
-                        onNavigateToLeaderboard = { currentScreen = Screen.LEADERBOARD }
+                        onNavigateToRace = { navigateTo(Screen.TRACKS) },
+                        onNavigateToGarage = { navigateTo(Screen.GARAGE) },
+                        onNavigateToCompanions = { navigateTo(Screen.COMPANIONS) },
+                        onNavigateToTracks = { navigateTo(Screen.TRACKS) },
+                        onNavigateToLeaderboard = { navigateTo(Screen.LEADERBOARD) }
                     )
                     Screen.RACE -> RaceScreen(
                         gameEngine = gameEngine,
-                        onBackToHome = { currentScreen = Screen.HOME },
-                        onGoToGarage = { currentScreen = Screen.GARAGE }
+                        onBackToHome = goBack,
+                        onGoToGarage = {
+                            if (!backStack.contains(Screen.GARAGE)) {
+                                backStack.add(Screen.GARAGE)
+                            } else {
+                                while (backStack.lastOrNull() != Screen.GARAGE && backStack.size > 1) {
+                                    backStack.removeAt(backStack.size - 1)
+                                }
+                            }
+                        }
                     )
                     Screen.GARAGE -> GarageScreen(
                         gameEngine = gameEngine,
-                        onBackToHome = { currentScreen = Screen.HOME },
+                        onBackToHome = goBack,
                         onStartRace = {
                             gameEngine.startRace(gameEngine.saveData.unlockedTrackIds.firstOrNull() ?: "track_tutorial")
-                            currentScreen = Screen.RACE
+                            navigateTo(Screen.RACE)
                         }
                     )
                     Screen.COMPANIONS -> CompanionsScreen(
                         gameEngine = gameEngine,
-                        onBackToHome = { currentScreen = Screen.HOME }
+                        onBackToHome = goBack
                     )
                     Screen.TRACKS -> TrackSelectScreen(
                         gameEngine = gameEngine,
-                        onBackToHome = { currentScreen = Screen.HOME },
-                        onStartRace = { currentScreen = Screen.RACE }
+                        onBackToHome = goBack,
+                        onStartRace = { navigateTo(Screen.RACE) }
                     )
                     Screen.LEADERBOARD -> LeaderboardScreen(
                         gameEngine = gameEngine,
-                        onBackToHome = { currentScreen = Screen.HOME }
+                        onBackToHome = goBack
                     )
                 }
             }
