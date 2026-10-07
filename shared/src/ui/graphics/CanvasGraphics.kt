@@ -15,10 +15,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -677,7 +678,7 @@ fun CircularTachometer(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.height(18.dp)) // push slightly down below needle pivot
+            Spacer(modifier = Modifier.height(100.dp)) // push slightly down below needle pivot
             Text(
                 text = "${engineRpm.toInt()}",
                 color = if (inGreenZone) Color(0xFF76FF03) else Color.White,
@@ -690,14 +691,6 @@ fun CircularTachometer(
                 fontSize = 9.sp,
                 fontWeight = FontWeight.Bold
             )
-            if (inGreenZone) {
-                Text(
-                    text = "PERFECT!",
-                    color = Color(0xFF76FF03),
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Black
-                )
-            }
         }
     }
 }

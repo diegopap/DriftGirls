@@ -320,7 +320,7 @@ fun RaceScreen(
                     border = androidx.compose.foundation.BorderStroke(2.dp, Color(0xFF00E5FF))
                 ) {
                     Column(
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
