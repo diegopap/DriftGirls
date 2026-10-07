@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -323,21 +325,22 @@ fun RaceScreen(
             }
         }
 
-        // 6. Drift Rating Flash Badge
-        race.lastDriftRating?.let { rating ->
+        // 6. Drift Rating Flash Badge (Entry / Exit / Double Perfect)
+        race.driftDisplayBanner?.let { bannerText ->
+            val badgeColor = race.lastDriftRating?.colorHex ?: 0xFFFFD600
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
                     .padding(bottom = 50.dp)
                     .background(
-                        Color(rating.colorHex).copy(alpha = 0.9f),
-                        shape = RoundedCornerShape(12.dp)
+                        Color(badgeColor).copy(alpha = 0.9f),
+                        shape = RoundedCornerShape(14.dp)
                     )
-                    .border(2.dp, Color.White, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 20.dp, vertical = 8.dp)
+                    .border(2.dp, Color.White, RoundedCornerShape(14.dp))
+                    .padding(horizontal = 22.dp, vertical = 10.dp)
             ) {
                 Text(
-                    text = rating.label,
+                    text = bannerText,
                     color = Color.White,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Black
@@ -383,13 +386,14 @@ fun RaceScreen(
                         )
                         .border(2.dp, Color.White, RoundedCornerShape(20.dp))
                         .pointerInput(Unit) {
-                            detectTapGestures(
-                                onPress = {
+                            awaitPointerEventScope {
+                                while (true) {
+                                    awaitFirstDown(requireUnconsumed = false)
                                     gameEngine.triggerDrift(isLeft = true)
-                                    tryAwaitRelease()
+                                    waitForUpOrCancellation()
                                     gameEngine.releaseDrift()
                                 }
-                            )
+                            }
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -410,13 +414,14 @@ fun RaceScreen(
                             )
                             .border(2.5.dp, Color.White, RoundedCornerShape(16.dp))
                             .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onPress = {
+                                awaitPointerEventScope {
+                                    while (true) {
+                                        awaitFirstDown(requireUnconsumed = false)
                                         gameEngine.setAccelerating(true)
-                                        tryAwaitRelease()
+                                        waitForUpOrCancellation()
                                         gameEngine.setAccelerating(false)
                                     }
-                                )
+                                }
                             },
                         contentAlignment = Alignment.Center
                     ) {
@@ -440,13 +445,14 @@ fun RaceScreen(
                         )
                         .border(2.dp, Color.White, RoundedCornerShape(20.dp))
                         .pointerInput(Unit) {
-                            detectTapGestures(
-                                onPress = {
+                            awaitPointerEventScope {
+                                while (true) {
+                                    awaitFirstDown(requireUnconsumed = false)
                                     gameEngine.triggerDrift(isLeft = false)
-                                    tryAwaitRelease()
+                                    waitForUpOrCancellation()
                                     gameEngine.releaseDrift()
                                 }
-                            )
+                            }
                         },
                     contentAlignment = Alignment.Center
                 ) {

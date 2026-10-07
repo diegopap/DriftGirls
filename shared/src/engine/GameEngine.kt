@@ -245,7 +245,10 @@ class ActiveRaceState(
     var cornerProgress by mutableStateOf(0f)
     var entryDriftRating by mutableStateOf<DriftRating?>(null)
     var exitDriftRating by mutableStateOf<DriftRating?>(null)
+    var hasAttemptedEntry by mutableStateOf(false)
+    var hasAttemptedExit by mutableStateOf(false)
     var lastDriftRating by mutableStateOf<DriftRating?>(null)
+    var driftDisplayBanner by mutableStateOf<String?>(null)
     var ratingDisplayTimer by mutableStateOf(0f)
     var driftScore by mutableStateOf(0)
     var comboMultiplier by mutableStateOf(1)
@@ -383,14 +386,31 @@ class GameEngine {
         if (race.isInsideCorner) {
             val speedFactor = (race.currentSpeed / 200f).coerceIn(0.6f, 1.8f)
             race.cornerProgress += deltaTimeSeconds * race.currentCornerLength.progressRate * speedFactor
+
+            // Auto-evaluate LATE EXIT if player holds button past corner exit (progress >= 1.25f)
+            if (race.cornerProgress >= 1.25f && race.hasAttemptedEntry && !race.hasAttemptedExit) {
+                evaluateExit(race)
+            }
+
             if (race.cornerProgress >= 1f) {
+                // If corner completes and exit was never evaluated (e.g. released early or never released):
+                if (race.hasAttemptedEntry && !race.hasAttemptedExit) {
+                    evaluateExit(race)
+                }
+
                 race.isInsideCorner = false
                 race.currentCornerIndex++
                 race.nextCornerDistance = 180f + (kotlin.random.Random.nextFloat() * 80f)
-                // Pre-determine direction and varied duration length for upcoming corner!
                 race.currentCornerDirection = if (race.currentCornerIndex % 2 == 0) CornerDirection.RIGHT else CornerDirection.LEFT
                 val lengths = CornerLength.entries
                 race.currentCornerLength = lengths[race.currentCornerIndex % lengths.size]
+
+                // Reset drift attempt flags for the next corner
+                race.cornerProgress = 0f
+                race.hasAttemptedEntry = false
+                race.hasAttemptedExit = false
+                race.entryDriftRating = null
+                race.exitDriftRating = null
             }
         }
 
@@ -407,6 +427,7 @@ class GameEngine {
             race.ratingDisplayTimer -= deltaTimeSeconds
             if (race.ratingDisplayTimer <= 0f) {
                 race.lastDriftRating = null
+                race.driftDisplayBanner = null
             }
         }
 
@@ -442,6 +463,7 @@ class GameEngine {
 
         race.launchRating = rating
         race.lastDriftRating = rating
+        race.driftDisplayBanner = "${rating.label} LAUNCH!"
         race.ratingDisplayTimer = 2.5f
 
         when (rating) {
@@ -481,69 +503,97 @@ class GameEngine {
 
         if (isLeft) race.isDriftingLeft = true else race.isDriftingRight = true
 
+        // Strict 1-attempt rule per corner: ignore secondary presses during the same corner!
+        if (race.hasAttemptedEntry) return
+        race.hasAttemptedEntry = true
+
         // Corner Entry Timing Evaluation
         val rating = if (race.isInsideCorner) {
             when (race.cornerProgress) {
                 in 0.10f..0.35f -> DriftRating.PERFECT
                 in 0.05f..0.50f -> DriftRating.GREAT
                 in 0.00f..0.65f -> DriftRating.GOOD
-                else -> DriftRating.LATE
+                else -> DriftRating.MISS
             }
         } else if (race.nextCornerDistance < 80f) {
             DriftRating.GREAT
         } else {
-            DriftRating.GOOD
+            DriftRating.MISS
         }
 
         race.entryDriftRating = rating
         race.lastDriftRating = rating
-        race.ratingDisplayTimer = 1.8f
+        race.driftDisplayBanner = if (rating == DriftRating.MISS) "ENTRY MISS!" else "${rating.label} ENTRY!"
+        race.ratingDisplayTimer = 2.0f
 
-        // Score & Nitro
-        val baseScore = 200
-        val addedScore = (baseScore * rating.scoreMultiplier * race.comboMultiplier).toInt()
-        race.driftScore += addedScore
+        if (rating != DriftRating.MISS) {
+            val baseScore = 200
+            val addedScore = (baseScore * rating.scoreMultiplier * race.comboMultiplier).toInt()
+            race.driftScore += addedScore
 
-        race.comboMultiplier = min(10, race.comboMultiplier + 1)
-        race.nitroLevel = min(100f, race.nitroLevel + rating.nitroBonus)
+            race.comboMultiplier = min(10, race.comboMultiplier + 1)
+            race.nitroLevel = min(100f, race.nitroLevel + rating.nitroBonus)
 
-        // Companion Reaction
-        val speech = race.companion.dialogueLines.random()
-        race.companionSpeech = "${rating.label} ENTRY! $speech"
+            val speech = race.companion.dialogueLines.random()
+            race.companionSpeech = "${rating.label} ENTRY! $speech"
+        } else {
+            race.comboMultiplier = 1
+            race.companionSpeech = "Missed entry point!"
+        }
         race.companionSpeechTimer = 2.5f
     }
 
     fun releaseDrift() {
         val race = activeRaceState ?: return
 
-        // Evaluate Corner Exit Timing if inside corner and entry was initiated
-        if (race.isInsideCorner && race.entryDriftRating != null && race.exitDriftRating == null) {
-            val exitRating = when (race.cornerProgress) {
-                in 0.68f..0.88f -> DriftRating.PERFECT
-                in 0.58f..0.93f -> DriftRating.GREAT
-                in 0.48f..0.98f -> DriftRating.GOOD
-                else -> DriftRating.LATE
-            }
-
-            race.exitDriftRating = exitRating
-            race.lastDriftRating = exitRating
-            race.ratingDisplayTimer = 2.0f
-
-            // Double Perfect or Combined Corner Bonus!
-            if (race.entryDriftRating == DriftRating.PERFECT && exitRating == DriftRating.PERFECT) {
-                race.driftScore += 2500
-                race.nitroLevel = min(100f, race.nitroLevel + 50f)
-                race.comboMultiplier = min(10, race.comboMultiplier + 2)
-                race.companionSpeech = "DOUBLE PERFECT DRIFT!! MAGNIFICENT!! 🚀"
-            } else {
-                race.driftScore += (600 * exitRating.scoreMultiplier).toInt()
-                race.companionSpeech = "${exitRating.label} EXIT!!"
-            }
-            race.companionSpeechTimer = 2.5f
-        }
-
         race.isDriftingLeft = false
         race.isDriftingRight = false
+
+        // Evaluate exit IF entry was attempted and exit hasn't been evaluated yet
+        if (race.hasAttemptedEntry && !race.hasAttemptedExit) {
+            evaluateExit(race)
+        }
+    }
+
+    private fun evaluateExit(race: ActiveRaceState) {
+        if (race.hasAttemptedExit) return
+        race.hasAttemptedExit = true
+
+        val progress = race.cornerProgress
+        val exitRating = when {
+            progress in 0.82f..1.12f -> DriftRating.PERFECT   // Releasing right at yellow zone exit point!
+            progress in 0.68f..1.25f -> DriftRating.GREAT     // Close to yellow zone exit
+            progress in 0.55f..1.35f -> DriftRating.GOOD      // Fair exit
+            progress < 0.55f -> DriftRating.MISS              // Released TOO EARLY before exit!
+            else -> DriftRating.MISS                          // Held TOO LONG after exit!
+        }
+
+        race.exitDriftRating = exitRating
+        race.lastDriftRating = exitRating
+
+        if (exitRating == DriftRating.MISS) {
+            race.comboMultiplier = 1
+            val missMsg = if (progress < 0.55f) "EARLY EXIT! (MISS)" else "LATE EXIT! (MISS)"
+            race.driftDisplayBanner = missMsg
+            race.companionSpeech = if (progress < 0.55f) "Released too early!" else "Held too long past corner!"
+        } else if (race.entryDriftRating == DriftRating.PERFECT && exitRating == DriftRating.PERFECT) {
+            race.exitDriftRating = exitRating
+            race.lastDriftRating = exitRating
+            race.driftScore += 2500
+            race.nitroLevel = min(100f, race.nitroLevel + 50f)
+            race.comboMultiplier = min(10, race.comboMultiplier + 2)
+            race.driftDisplayBanner = "DOUBLE PERFECT DRIFT!! 🚀"
+            race.companionSpeech = "DOUBLE PERFECT DRIFT!! MAGNIFICENT!! 🚀"
+        } else {
+            race.exitDriftRating = exitRating
+            race.lastDriftRating = exitRating
+            race.driftScore += (600 * exitRating.scoreMultiplier).toInt()
+            race.driftDisplayBanner = "${exitRating.label} EXIT!"
+            race.companionSpeech = "${exitRating.label} EXIT!! Great control!"
+        }
+
+        race.ratingDisplayTimer = 2.2f
+        race.companionSpeechTimer = 2.5f
     }
 
     fun activateNitro() {

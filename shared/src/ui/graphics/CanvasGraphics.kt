@@ -279,6 +279,42 @@ fun ArcadeTrackCanvas(
         // Road Asphalt Color
         drawPath(roadPath, Color(0xFF1D1E22))
 
+        // Render Glowing Neon Yellow Drift Zone on the road surface synchronized with the CAR (v = 0.70)
+        val carV = 0.70f // The position of the car on the perspective track
+        val isYellowZoneActive = isInsideCorner || cornerDistance < 180f
+        if (isYellowZoneActive) {
+            val entryV = if (isInsideCorner) 1.0f else (((180f - cornerDistance) / 180f).coerceIn(0f, 1f) * carV)
+            val exitV = if (isInsideCorner) (cornerProgress.coerceIn(0f, 1f) * carV) else 0.0f
+
+            val yellowPath = Path()
+            var startedPath = false
+
+            for (i in 0..numSlices) {
+                val v = i / numSlices.toFloat()
+                if (v in exitV..entryV) {
+                    if (!startedPath) {
+                        yellowPath.moveTo(slicePointsLeft[i].x, slicePointsLeft[i].y)
+                        startedPath = true
+                    } else {
+                        yellowPath.lineTo(slicePointsLeft[i].x, slicePointsLeft[i].y)
+                    }
+                }
+            }
+
+            if (startedPath) {
+                for (i in numSlices downTo 0) {
+                    val v = i / numSlices.toFloat()
+                    if (v in exitV..entryV) {
+                        yellowPath.lineTo(slicePointsRight[i].x, slicePointsRight[i].y)
+                    }
+                }
+                yellowPath.close()
+
+                // Draw Glowing Neon Yellow Road Overlay
+                drawPath(yellowPath, Color(0xFFFFD600).copy(alpha = 0.65f))
+            }
+        }
+
         // Red/White Striped Curbs along the multi-section path
         val leftCurbPath = Path().apply {
             val topWidth = 14f
