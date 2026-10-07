@@ -145,10 +145,10 @@ object GameDataDefaults {
             name = "Akina Training Pass",
             location = "Mountain Hill",
             difficulty = "Beginner",
-            distanceMeters = 800,
-            cornersCount = 4,
-            rewardCash = 500,
-            rewardGems = 10,
+            distanceMeters = 1400,
+            cornersCount = 6,
+            rewardCash = 650,
+            rewardGems = 12,
             primaryColorHex = 0xFF4CAF50, // Green
             isTutorial = true,
             discoverableGirlId = "aoi"
@@ -158,10 +158,10 @@ object GameDataDefaults {
             name = "Neon City Strip",
             location = "Metropolis Highway",
             difficulty = "Easy",
-            distanceMeters = 1400,
-            cornersCount = 6,
-            rewardCash = 1200,
-            rewardGems = 15,
+            distanceMeters = 2000,
+            cornersCount = 8,
+            rewardCash = 1500,
+            rewardGems = 20,
             primaryColorHex = 0xFF00E5FF, // Cyan
             discoverableGirlId = "sora"
         ),
@@ -264,8 +264,8 @@ class ActiveRaceState(
     var isDriftingRight by mutableStateOf(false)
     var driftAngle by mutableStateOf(0f)
     var currentCornerIndex by mutableStateOf(0)
-    var currentCornerDirection by mutableStateOf(CornerDirection.RIGHT)
-    var currentCornerLength by mutableStateOf(CornerLength.MEDIUM)
+    var currentCornerDirection by mutableStateOf(CornerDirection.entries.random())
+    var currentCornerLength by mutableStateOf(CornerLength.entries.random())
     var nextCornerDistance by mutableStateOf(initialNextCornerDistance)
     var isInsideCorner by mutableStateOf(false)
     var cornerProgress by mutableStateOf(0f)
@@ -563,9 +563,9 @@ class GameEngine {
             val speedFactor = (race.currentSpeed / 200f).coerceIn(0.6f, 1.8f)
             race.cornerProgress += deltaTimeSeconds * race.currentCornerLength.progressRate * speedFactor
 
-            // Auto-evaluate LATE EXIT if player holds button past corner exit (progress >= 1.25f)
-            if (race.cornerProgress >= 1.25f && race.hasAttemptedEntry && !race.hasAttemptedExit) {
-                evaluateExit(race)
+            // Auto-evaluate LATE EXIT if player holds button past corner exit (progress >= 1.00f)
+            if (race.cornerProgress >= 1.00f && race.hasAttemptedEntry && !race.hasAttemptedExit) {
+                evaluateExit(race, forcedMiss = true)
             }
 
             if (race.cornerProgress >= 1f) {
@@ -582,15 +582,14 @@ class GameEngine {
                         race.companionSpeechTimer = 2.5f
                     }
                 } else if (!race.hasAttemptedExit) {
-                    evaluateExit(race)
+                    evaluateExit(race, forcedMiss = true)
                 }
 
                 race.isInsideCorner = false
                 race.currentCornerIndex++
-                race.nextCornerDistance = 180f + (kotlin.random.Random.nextFloat() * 80f)
-                race.currentCornerDirection = if (race.currentCornerIndex % 2 == 0) CornerDirection.RIGHT else CornerDirection.LEFT
-                val lengths = CornerLength.entries
-                race.currentCornerLength = lengths[race.currentCornerIndex % lengths.size]
+                race.nextCornerDistance = 160f + (kotlin.random.Random.nextFloat() * 100f)
+                race.currentCornerDirection = CornerDirection.entries.random()
+                race.currentCornerLength = CornerLength.entries.random()
 
                 // Reset drift attempt flags for the next corner
                 race.cornerProgress = 0f
@@ -704,8 +703,12 @@ class GameEngine {
         if (race.hasAttemptedEntry) return
         race.hasAttemptedEntry = true
 
+        val isCorrectDirection = if (race.currentCornerDirection == CornerDirection.LEFT) isLeft else !isLeft
+
         // Corner Entry Timing Evaluation
-        val rating = if (race.isInsideCorner) {
+        val rating = if (!isCorrectDirection) {
+            DriftRating.MISS
+        } else if (race.isInsideCorner) {
             when (race.cornerProgress) {
                 in 0.10f..0.35f -> DriftRating.PERFECT
                 in 0.05f..0.50f -> DriftRating.GREAT
@@ -720,7 +723,11 @@ class GameEngine {
 
         race.entryDriftRating = rating
         race.lastDriftRating = rating
-        race.driftDisplayBanner = if (rating == DriftRating.MISS) "ENTRY MISS!" else "${rating.label} ENTRY!"
+        race.driftDisplayBanner = if (rating == DriftRating.MISS) {
+            if (!isCorrectDirection) "WRONG DIRECTION! (MISS)" else "ENTRY MISS!"
+        } else {
+            "${rating.label} ENTRY!"
+        }
         race.ratingDisplayTimer = 2.0f
 
         if (rating != DriftRating.MISS) {
@@ -737,7 +744,9 @@ class GameEngine {
             }
         } else {
             race.comboMultiplier = 1
-            if (race.companion != null) race.companionSpeech = "Missed entry point!"
+            if (race.companion != null) {
+                race.companionSpeech = if (!isCorrectDirection) "Wrong turn direction! Steer the other way!" else "Missed entry point!"
+            }
         }
         race.companionSpeechTimer = 2.5f
     }
@@ -754,17 +763,22 @@ class GameEngine {
         }
     }
 
-    private fun evaluateExit(race: ActiveRaceState) {
+    private fun evaluateExit(race: ActiveRaceState, forcedMiss: Boolean = false) {
         if (race.hasAttemptedExit) return
         race.hasAttemptedExit = true
 
         val progress = race.cornerProgress
-        val exitRating = when {
-            progress in 0.82f..1.12f -> DriftRating.PERFECT   // Releasing right at yellow zone exit point!
-            progress in 0.68f..1.25f -> DriftRating.GREAT     // Close to yellow zone exit
-            progress in 0.55f..1.35f -> DriftRating.GOOD      // Fair exit
-            progress < 0.55f -> DriftRating.MISS              // Released TOO EARLY before exit!
-            else -> DriftRating.MISS                          // Held TOO LONG after exit!
+        val exitRating = if (forcedMiss) {
+            DriftRating.MISS
+        } else {
+            when {
+                progress < 0.55f -> DriftRating.MISS              // Released TOO EARLY before exit!
+                progress in 0.55f..0.72f -> DriftRating.GOOD
+                progress in 0.72f..0.85f -> DriftRating.GREAT
+                progress in 0.85f..1.12f -> DriftRating.PERFECT   // Releasing right at corner exit window
+                progress in 1.12f..1.22f -> DriftRating.GREAT     // Slightly late exit
+                else -> DriftRating.MISS                          // Held TOO LONG after exit (> 1.22f)!
+            }
         }
 
         race.exitDriftRating = exitRating
