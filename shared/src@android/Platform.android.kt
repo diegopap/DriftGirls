@@ -24,3 +24,8 @@ actual fun loadGameData(): String? {
     val prefs = ctx.getSharedPreferences("drift_girls_save_v2", Context.MODE_PRIVATE)
     return prefs.getString("save_payload", null)
 }
+
+actual fun getFormattedCurrentDate(): String {
+    val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
+    return sdf.format(java.util.Date())
+}

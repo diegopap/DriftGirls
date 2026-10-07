@@ -96,14 +96,31 @@ fun RaceScreen(
                 .statusBarsPadding()
                 .padding(horizontal = 16.dp, vertical = if (isLandscape) 6.dp else 16.dp)
         ) {
-            // Distance Progress Bar
-            val progress = (race.distanceTravelled / race.track.distanceMeters.toFloat()).coerceIn(0f, 1f)
+            // Top Progress Bar (Distance for normal tracks, High Score comparison for Endless track)
+            val progressText: String
+            val progressValue: Float
+
+            if (race.track.isEndless) {
+                val highScore = gameEngine.getHighestEndlessScore()
+                val targetScore = maxOf(highScore, 5000)
+                progressValue = (race.driftScore.toFloat() / targetScore.toFloat()).coerceIn(0f, 1f)
+                val isBeating = race.driftScore > highScore
+                progressText = if (isBeating) {
+                    "${race.track.name} • 👑 HIGH SCORE: ${race.driftScore} / $highScore"
+                } else {
+                    "${race.track.name} • High Score: $highScore (${(progressValue * 100).toInt()}%)"
+                }
+            } else {
+                progressValue = (race.distanceTravelled / race.track.distanceMeters.toFloat()).coerceIn(0f, 1f)
+                progressText = "${race.track.name} (${(progressValue * 100).toInt()}%)"
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "${race.track.name} (${(progress * 100).toInt()}%)",
+                    text = progressText,
                     color = Color.White,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -119,13 +136,13 @@ fun RaceScreen(
             }
 
             LinearProgressIndicator(
-                progress = { progress },
+                progress = { progressValue },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(6.dp)
                     .padding(top = 2.dp)
                     .clip(CircleShape),
-                color = Color(0xFF00E5FF),
+                color = if (race.track.isEndless) Color(0xFFFFD600) else Color(0xFF00E5FF),
                 trackColor = Color.White.copy(alpha = 0.2f)
             )
 
@@ -200,6 +217,32 @@ fun RaceScreen(
                     color = Color(0xFF00E5FF),
                     trackColor = Color.Gray.copy(alpha = 0.3f)
                 )
+            }
+
+            // 60s Time Limit Banner Centered Directly Below Nitro Bar
+            race.timeRemainingSeconds?.let { timeSec ->
+                Spacer(modifier = Modifier.height(6.dp))
+                val isUrgent = timeSec <= 10f
+                val wholeSec = timeSec.toInt()
+                val tenths = ((timeSec - wholeSec) * 10).toInt().coerceIn(0, 9)
+
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .background(
+                            if (isUrgent) Color(0xFFFF1744) else Color(0xFFFFD600),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .border(1.5.dp, Color.White, RoundedCornerShape(12.dp))
+                        .padding(horizontal = 14.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "⏱️ TIME REMAINING: $wholeSec.${tenths}s",
+                        color = Color.Black,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
             }
         }
 

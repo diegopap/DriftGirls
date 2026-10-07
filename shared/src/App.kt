@@ -18,7 +18,8 @@ enum class Screen {
     RACE,
     GARAGE,
     COMPANIONS,
-    TRACKS
+    TRACKS,
+    LEADERBOARD
 }
 
 @Composable
@@ -40,7 +41,8 @@ fun App() {
                         onNavigateToRace = { currentScreen = Screen.TRACKS },
                         onNavigateToGarage = { currentScreen = Screen.GARAGE },
                         onNavigateToCompanions = { currentScreen = Screen.COMPANIONS },
-                        onNavigateToTracks = { currentScreen = Screen.TRACKS }
+                        onNavigateToTracks = { currentScreen = Screen.TRACKS },
+                        onNavigateToLeaderboard = { currentScreen = Screen.LEADERBOARD }
                     )
                     Screen.RACE -> RaceScreen(
                         gameEngine = gameEngine,
@@ -63,6 +65,10 @@ fun App() {
                         gameEngine = gameEngine,
                         onBackToHome = { currentScreen = Screen.HOME },
                         onStartRace = { currentScreen = Screen.RACE }
+                    )
+                    Screen.LEADERBOARD -> LeaderboardScreen(
+                        gameEngine = gameEngine,
+                        onBackToHome = { currentScreen = Screen.HOME }
                     )
                 }
             }

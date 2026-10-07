@@ -108,6 +108,15 @@ data class GiftItem(
     val iconSymbol: String
 )
 
+data class LeaderboardEntry(
+    val id: String,
+    val trackName: String,
+    val driftScore: Int,
+    val dateString: String,
+    val carName: String,
+    val companionName: String?
+)
+
 data class RaceTrack(
     val id: String,
     val name: String,
@@ -119,7 +128,9 @@ data class RaceTrack(
     val rewardGems: Int,
     val primaryColorHex: Long,
     val isTutorial: Boolean = false,
-    val discoverableGirlId: String? = null
+    val discoverableGirlId: String? = null,
+    val isEndless: Boolean = false,
+    val timeLimitSeconds: Float? = null
 )
 
 data class GameSaveData(
@@ -132,5 +143,6 @@ data class GameSaveData(
     val discoveredCompanionIds: Set<String> = emptySet(),
     val companionAffinities: Map<String, Int> = emptyMap(),
     val completedTutorial: Boolean = false,
-    val isGameCompleted: Boolean = false
+    val isGameCompleted: Boolean = false,
+    val leaderboardEntries: List<LeaderboardEntry> = emptyList()
 )

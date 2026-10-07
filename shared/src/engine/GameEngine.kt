@@ -188,6 +188,19 @@ object GameDataDefaults {
             rewardGems = 40,
             primaryColorHex = 0xFFFFD700, // Gold
             discoverableGirlId = "mia"
+        ),
+        RaceTrack(
+            id = "track_endless",
+            name = "Infinity Drift Pass",
+            location = "Celestial Summit",
+            difficulty = "Endless (60s)",
+            distanceMeters = 999999,
+            cornersCount = 99,
+            rewardCash = 10000,
+            rewardGems = 100,
+            primaryColorHex = 0xFFFFD700, // Gold
+            isEndless = true,
+            timeLimitSeconds = 60f
         )
     )
 
@@ -272,6 +285,7 @@ class ActiveRaceState(
     var earnedCash by mutableStateOf(0)
     var earnedGems by mutableStateOf(0)
     var earnedAffection by mutableStateOf(0)
+    var timeRemainingSeconds by mutableStateOf<Float?>(track.timeLimitSeconds)
     var newlyDiscoveredCompanion by mutableStateOf<GirlCompanion?>(null)
 }
 
@@ -303,6 +317,9 @@ class GameEngine {
             val affinities = saveData.companionAffinities.entries.joinToString(";") {
                 "${it.key}:${it.value}"
             }
+            val leaderboardPayload = saveData.leaderboardEntries.joinToString(";") {
+                "${it.id}#${it.trackName}#${it.driftScore}#${it.dateString}#${it.carName}#${it.companionName ?: ""}"
+            }
             val payload = listOf(
                 saveData.cash.toString(),
                 saveData.gems.toString(),
@@ -314,7 +331,8 @@ class GameEngine {
                 if (saveData.completedTutorial) "1" else "0",
                 carCustoms,
                 saveData.discoveredCompanionIds.joinToString(","),
-                if (saveData.isGameCompleted) "1" else "0"
+                if (saveData.isGameCompleted) "1" else "0",
+                leaderboardPayload
             ).joinToString("||")
 
             saveGameData(payload)
@@ -362,11 +380,31 @@ class GameEngine {
                     parts[10].toIntOrNull() == 1
                 } else false
 
+                val leaderboardEntries = if (parts.size >= 12) {
+                    parts[11].split(";").filter { it.contains("#") }.mapNotNull {
+                        val p = it.split("#")
+                        if (p.size >= 5) {
+                            LeaderboardEntry(
+                                id = p[0],
+                                trackName = p[1],
+                                driftScore = p[2].toIntOrNull() ?: 0,
+                                dateString = p[3],
+                                carName = p[4],
+                                companionName = p.getOrNull(5)?.ifBlank { null }
+                            )
+                        } else null
+                    }.sortedWith(
+                        compareByDescending<LeaderboardEntry> { it.driftScore }
+                            .thenByDescending { it.dateString }
+                    )
+                } else emptyList()
+
                 // Strictly sanitize unlocked tracks based on discovered companions
                 val sanitizedUnlockedTracks = mutableSetOf("track_tutorial")
                 if (discoveredCompanionIds.contains("aoi")) sanitizedUnlockedTracks.add("track_neon_city")
                 if (discoveredCompanionIds.contains("sora")) sanitizedUnlockedTracks.add("track_mountain")
                 if (discoveredCompanionIds.contains("elena")) sanitizedUnlockedTracks.add("track_ocean")
+                if (isGameCompleted) sanitizedUnlockedTracks.add("track_endless")
 
                 // Strictly sanitize selected companion
                 val sanitizedSelectedCompanion = if (selectedCompanionId != null && discoveredCompanionIds.contains(selectedCompanionId)) {
@@ -385,7 +423,8 @@ class GameEngine {
                     discoveredCompanionIds = discoveredCompanionIds,
                     companionAffinities = companionAffinities,
                     completedTutorial = completedTutorial,
-                    isGameCompleted = isGameCompleted
+                    isGameCompleted = isGameCompleted,
+                    leaderboardEntries = leaderboardEntries
                 )
 
                 cars = cars.map { car ->
@@ -586,8 +625,18 @@ class GameEngine {
             }
         }
 
-        // Race Finish Check
-        if (race.distanceTravelled >= race.track.distanceMeters) {
+        // Time Limit Countdown for Endless / Timed tracks
+        if (race.timeRemainingSeconds != null) {
+            val remaining = (race.timeRemainingSeconds!! - deltaTimeSeconds).coerceAtLeast(0f)
+            race.timeRemainingSeconds = remaining
+            if (remaining <= 0f) {
+                finishRace()
+                return
+            }
+        }
+
+        // Race Finish Check (for distance-based non-endless tracks)
+        if (!race.track.isEndless && race.distanceTravelled >= race.track.distanceMeters) {
             finishRace()
         }
     }
@@ -820,6 +869,23 @@ class GameEngine {
         if (updatedDiscovered.contains("sora")) updatedUnlockedTracks.add("track_mountain")
         if (updatedDiscovered.contains("elena")) updatedUnlockedTracks.add("track_ocean")
 
+        // Add to Leaderboard sorted by Drift Score & Date
+        val newLbEntry = LeaderboardEntry(
+            id = "lb_${kotlin.random.Random.nextInt(100000, 999999)}",
+            trackName = race.track.name,
+            driftScore = race.driftScore,
+            dateString = com.driftgirls.getFormattedCurrentDate(),
+            carName = race.car.name,
+            companionName = race.companion?.name
+        )
+
+        val updatedLeaderboard = (saveData.leaderboardEntries + newLbEntry)
+            .sortedWith(
+                compareByDescending<LeaderboardEntry> { it.driftScore }
+                    .thenByDescending { it.dateString }
+            )
+            .take(30)
+
         race.newlyDiscoveredCompanion = newlyDiscovered
 
         saveData = saveData.copy(
@@ -829,7 +895,8 @@ class GameEngine {
             discoveredCompanionIds = updatedDiscovered,
             selectedCompanionId = updatedSelectedCompanionId,
             unlockedTrackIds = updatedUnlockedTracks,
-            completedTutorial = true
+            completedTutorial = true,
+            leaderboardEntries = updatedLeaderboard
         )
 
         checkAndTriggerGameCompletion()
@@ -844,8 +911,12 @@ class GameEngine {
                 (saveData.companionAffinities[girlId] ?: 0) >= 100
             }
             if (allMaxed) {
-                if (!saveData.isGameCompleted) {
-                    saveData = saveData.copy(isGameCompleted = true)
+                val updatedUnlocked = saveData.unlockedTrackIds + "track_endless"
+                if (!saveData.isGameCompleted || !saveData.unlockedTrackIds.contains("track_endless")) {
+                    saveData = saveData.copy(
+                        isGameCompleted = true,
+                        unlockedTrackIds = updatedUnlocked
+                    )
                     persistSaveToDisk()
                 }
                 return true
@@ -857,6 +928,12 @@ class GameEngine {
     fun resetGameProgress() {
         saveData = GameSaveData()
         persistSaveToDisk()
+    }
+
+    fun getHighestEndlessScore(): Int {
+        return saveData.leaderboardEntries
+            .filter { it.trackName == "Infinity Drift Pass" }
+            .maxOfOrNull { it.driftScore } ?: 5000
     }
 
     fun selectCar(carId: String) {

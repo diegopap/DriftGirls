@@ -26,7 +26,8 @@ fun HomeScreen(
     onNavigateToRace: () -> Unit,
     onNavigateToGarage: () -> Unit,
     onNavigateToCompanions: () -> Unit,
-    onNavigateToTracks: () -> Unit
+    onNavigateToTracks: () -> Unit,
+    onNavigateToLeaderboard: () -> Unit
 ) {
     val companion = gameEngine.currentCompanion
     val car = gameEngine.currentCar
@@ -115,7 +116,7 @@ fun HomeScreen(
                         fontWeight = FontWeight.Black
                     )
                     Text(
-                        text = "You discovered all 4 Drift Girls and achieved 100% Affection with everyone!",
+                        text = "Infinity Drift Pass (Endless 60s) Track is now UNLOCKED!",
                         color = Color.Black.copy(alpha = 0.8f),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
@@ -238,11 +239,11 @@ fun HomeScreen(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             MenuCard(
                 title = "GARAGE",
-                subtitle = "Cars & Tuning",
+                subtitle = "Tuning",
                 icon = "🏎️",
                 color = Color(0xFFFF3D00),
                 modifier = Modifier.weight(1f),
@@ -251,7 +252,7 @@ fun HomeScreen(
 
             MenuCard(
                 title = "GIRLS",
-                subtitle = "Dates & Perks",
+                subtitle = "Dates",
                 icon = "💕",
                 color = Color(0xFFFF007F),
                 modifier = Modifier.weight(1f),
@@ -260,11 +261,20 @@ fun HomeScreen(
 
             MenuCard(
                 title = "TRACKS",
-                subtitle = "Tournaments",
+                subtitle = "Career",
                 icon = "🗺️",
                 color = Color(0xFF00E5FF),
                 modifier = Modifier.weight(1f),
                 onClick = onNavigateToTracks
+            )
+
+            MenuCard(
+                title = "SCORES",
+                subtitle = "Leaderboard",
+                icon = "🏆",
+                color = Color(0xFFFFD600),
+                modifier = Modifier.weight(1f),
+                onClick = onNavigateToLeaderboard
             )
         }
 
@@ -301,13 +311,13 @@ private fun MenuCard(
         border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f))
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = icon, fontSize = 24.sp)
+            Text(text = icon, fontSize = 22.sp)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = title, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Black)
-            Text(text = subtitle, color = Color.White.copy(alpha = 0.5f), fontSize = 9.sp)
+            Text(text = title, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Black)
+            Text(text = subtitle, color = Color.White.copy(alpha = 0.5f), fontSize = 8.sp)
         }
     }
 }
