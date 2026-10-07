@@ -64,29 +64,17 @@ fun RaceScreen(
             isNitroActive = race.isNitroActive
         )
 
-        // 2. Car Canvas View Following Track Curve & Steering Inputs
-        val dirMult = if (race.currentCornerDirection == com.driftgirls.model.CornerDirection.LEFT) -1f else 1f
-        val maxBendDp = if (isLandscape) 140.dp else 160.dp
-        val curveOffsetDp = if (race.isInsideCorner) {
-            (dirMult * kotlin.math.sin(race.cornerProgress * kotlin.math.PI.toFloat())).dp * maxBendDp.value
-        } else if (race.nextCornerDistance < 120f) {
-            (dirMult * ((120f - race.nextCornerDistance) / 120f)).dp * (maxBendDp.value * 0.4f)
-        } else {
-            0.dp
-        }
-
-        val roadCenterShift = curveOffsetDp * 0.70f
+        // 2. Car Canvas View (Anchored to Fixed Bottom Track Center + Player Steering)
         val steeringShift = when {
-            race.isDriftingLeft -> (-30).dp
-            race.isDriftingRight -> 30.dp
+            race.isDriftingLeft -> (-35).dp
+            race.isDriftingRight -> 35.dp
             else -> 0.dp
         }
-        val totalCarXOffset = roadCenterShift + steeringShift
 
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .offset(x = totalCarXOffset)
+                .offset(x = steeringShift)
                 .padding(bottom = if (isLandscape) 100.dp else 180.dp)
         ) {
             CarCanvas(

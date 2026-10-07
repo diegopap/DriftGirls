@@ -215,93 +215,117 @@ fun ArcadeTrackCanvas(
             center = Offset(w * 0.5f, h * 0.42f)
         )
 
-        // Ground / Road Perspective
+        // Ground / Road Perspective Slices
         val roadHorizonY = h * 0.42f
         val roadBottomY = h
 
         val roadTopWidth = w * 0.15f
         val roadBottomWidth = w * 0.92f
 
-        // Curve shift calculated from corner progress & direction
         val dirMult = if (cornerDirection == com.driftgirls.model.CornerDirection.LEFT) -1f else 1f
         val maxBend = w * 0.45f
-        val curveOffset = if (isInsideCorner) {
-            dirMult * sin(cornerProgress * kotlin.math.PI.toFloat()) * maxBend
-        } else if (cornerDistance < 120f) {
-            dirMult * (120f - cornerDistance) * 1.1f
-        } else {
-            0f
+
+        // Multi-Section Curve Calculation:
+        // ONLY the upper part of the track near the horizon (v < 0.40) curves to show the turn!
+        // The middle and bottom parts of the track (v >= 0.40) remain 100% FIXED and CENTERED (xOffset = 0)!
+        val numSlices = 28
+        val slicePointsLeft = ArrayList<Offset>(numSlices + 1)
+        val slicePointsRight = ArrayList<Offset>(numSlices + 1)
+
+        val approachFactor = ((150f - cornerDistance) / 150f).coerceIn(0f, 1f)
+
+        for (i in 0..numSlices) {
+            val v = i / numSlices.toFloat() // 0.0 at horizon, 1.0 at car
+            val y = roadHorizonY + (roadBottomY - roadHorizonY) * v
+            val sliceWidth = roadTopWidth + (roadBottomWidth - roadTopWidth) * v
+
+            val xOffset = if (v < 0.40f) {
+                val upperFactor = 1f - (v / 0.40f) // 1.0 at horizon (v=0), 0.0 at v=0.40
+                val bendAmount = upperFactor * upperFactor * (maxBend * 0.85f)
+
+                if (isInsideCorner) {
+                    // turnIntensity starts at 1.0 at entry (100% matching approach offset),
+                    // then smoothly decays to 0.0 at exit, returning the horizon to center without any jumps!
+                    val turnIntensity = cos(cornerProgress * kotlin.math.PI.toFloat() / 2f)
+                    dirMult * bendAmount * turnIntensity
+                } else if (cornerDistance < 150f) {
+                    dirMult * bendAmount * approachFactor
+                } else {
+                    0f
+                }
+            } else {
+                0f // Middle & bottom of track stay 100% fixed & straight!
+            }
+
+            val centerX = (w / 2f) + xOffset
+
+            slicePointsLeft.add(Offset(centerX - (sliceWidth / 2f), y))
+            slicePointsRight.add(Offset(centerX + (sliceWidth / 2f), y))
         }
 
-        val topLeftX = (w / 2f) - (roadTopWidth / 2f)
-        val topRightX = (w / 2f) + (roadTopWidth / 2f)
-
-        val bottomLeftX = (w / 2f) - (roadBottomWidth / 2f)
-        val bottomRightX = (w / 2f) + (roadBottomWidth / 2f)
-
-        // Circular arc Bezier Control Points
-        val midY = (roadHorizonY + roadBottomY) * 0.52f
-        val leftControlX = (topLeftX + bottomLeftX) / 2f + curveOffset * 1.6f
-        val rightControlX = (topRightX + bottomRightX) / 2f + curveOffset * 1.6f
-
-        val roadTopTargetX = topLeftX + curveOffset * 0.4f
-        val roadTopRightTargetX = topRightX + curveOffset * 0.4f
-
-        // Smooth Circular Bending Road Surface
+        // Render Multi-Section Bending Road Surface
         val roadPath = Path().apply {
-            moveTo(roadTopTargetX, roadHorizonY)
-            lineTo(roadTopRightTargetX, roadHorizonY)
-            quadraticTo(rightControlX, midY, bottomRightX, roadBottomY)
-            lineTo(bottomLeftX, roadBottomY)
-            quadraticTo(leftControlX, midY, roadTopTargetX, roadHorizonY)
+            moveTo(slicePointsLeft[0].x, slicePointsLeft[0].y)
+            for (i in 1..numSlices) {
+                lineTo(slicePointsLeft[i].x, slicePointsLeft[i].y)
+            }
+            lineTo(slicePointsRight[numSlices].x, slicePointsRight[numSlices].y)
+            for (i in numSlices - 1 downTo 0) {
+                lineTo(slicePointsRight[i].x, slicePointsRight[i].y)
+            }
             close()
         }
 
         // Road Asphalt Color
         drawPath(roadPath, Color(0xFF1D1E22))
 
-        // Red/White Striped Curbs following the circular bend
-        val curbWidthTop = 14f
-        val curbWidthBottom = 40f
-
+        // Red/White Striped Curbs along the multi-section path
         val leftCurbPath = Path().apply {
-            moveTo(roadTopTargetX - curbWidthTop, roadHorizonY)
-            lineTo(roadTopTargetX, roadHorizonY)
-            quadraticTo(leftControlX, midY, bottomLeftX, roadBottomY)
-            lineTo(bottomLeftX - curbWidthBottom, roadBottomY)
-            quadraticTo(leftControlX - curbWidthTop, midY, roadTopTargetX - curbWidthTop, roadHorizonY)
+            val topWidth = 14f
+            val botWidth = 40f
+            moveTo(slicePointsLeft[0].x - topWidth, slicePointsLeft[0].y)
+            for (i in 0..numSlices) {
+                val v = i / numSlices.toFloat()
+                val curbW = topWidth + (botWidth - topWidth) * v
+                lineTo(slicePointsLeft[i].x - curbW, slicePointsLeft[i].y)
+            }
+            for (i in numSlices downTo 0) {
+                lineTo(slicePointsLeft[i].x, slicePointsLeft[i].y)
+            }
             close()
         }
 
         val rightCurbPath = Path().apply {
-            moveTo(roadTopRightTargetX, roadHorizonY)
-            lineTo(roadTopRightTargetX + curbWidthTop, roadHorizonY)
-            quadraticTo(rightControlX + curbWidthTop, midY, bottomRightX + curbWidthBottom, roadBottomY)
-            lineTo(bottomRightX, roadBottomY)
-            quadraticTo(rightControlX, midY, roadTopRightTargetX, roadHorizonY)
+            val topWidth = 14f
+            val botWidth = 40f
+            moveTo(slicePointsRight[0].x, slicePointsRight[0].y)
+            for (i in 0..numSlices) {
+                lineTo(slicePointsRight[i].x, slicePointsRight[i].y)
+            }
+            for (i in numSlices downTo 0) {
+                val v = i / numSlices.toFloat()
+                val curbW = topWidth + (botWidth - topWidth) * v
+                lineTo(slicePointsRight[i].x + curbW, slicePointsRight[i].y)
+            }
             close()
         }
 
         drawPath(leftCurbPath, Color(0xFFFF1744)) // Red Curb
         drawPath(rightCurbPath, Color(0xFFFF1744))
 
-        // Center Animated Dash Lines following the circular curve
-        val numDashes = 10
-        for (i in 0..numDashes) {
-            val progress = (i / numDashes.toFloat())
-            val lineY = roadHorizonY + (roadBottomY - roadHorizonY) * progress
+        // Center Animated Dash Lines
+        for (i in 0..numSlices step 3) {
+            val ptL = slicePointsLeft[i]
+            val ptR = slicePointsRight[i]
+            val centerX = (ptL.x + ptR.x) / 2f
+            val v = i / numSlices.toFloat()
 
-            val t = progress
-            val arcX = (1f - t) * (1f - t) * (w / 2f + curveOffset * 0.4f) +
-                    2f * (1f - t) * t * (w / 2f + curveOffset * 1.6f) +
-                    t * t * (w / 2f)
-
-            val lineWidth = 4f + (progress * 18f)
-            val lineHeight = 8f + (progress * 30f)
+            val lineWidth = 4f + (v * 18f)
+            val lineHeight = 8f + (v * 30f)
 
             drawRoundRect(
                 color = Color(0xFFFFD600), // Neon Yellow
-                topLeft = Offset(arcX - (lineWidth / 2f), lineY),
+                topLeft = Offset(centerX - (lineWidth / 2f), ptL.y),
                 size = Size(lineWidth, lineHeight),
                 cornerRadius = CornerRadius(4f, 4f)
             )
