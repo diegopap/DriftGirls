@@ -150,7 +150,8 @@ object GameDataDefaults {
             rewardCash = 500,
             rewardGems = 10,
             primaryColorHex = 0xFF4CAF50, // Green
-            isTutorial = true
+            isTutorial = true,
+            discoverableGirlId = "aoi"
         ),
         RaceTrack(
             id = "track_neon_city",
@@ -161,7 +162,8 @@ object GameDataDefaults {
             cornersCount = 6,
             rewardCash = 1200,
             rewardGems = 15,
-            primaryColorHex = 0xFF00E5FF // Cyan
+            primaryColorHex = 0xFF00E5FF, // Cyan
+            discoverableGirlId = "sora"
         ),
         RaceTrack(
             id = "track_mountain",
@@ -172,7 +174,8 @@ object GameDataDefaults {
             cornersCount = 10,
             rewardCash = 2500,
             rewardGems = 25,
-            primaryColorHex = 0xFFFF4081 // Pink
+            primaryColorHex = 0xFFFF4081, // Pink
+            discoverableGirlId = "elena"
         ),
         RaceTrack(
             id = "track_ocean",
@@ -183,7 +186,8 @@ object GameDataDefaults {
             cornersCount = 12,
             rewardCash = 4500,
             rewardGems = 40,
-            primaryColorHex = 0xFFFFD700 // Gold
+            primaryColorHex = 0xFFFFD700, // Gold
+            discoverableGirlId = "mia"
         )
     )
 
@@ -225,7 +229,7 @@ object GameDataDefaults {
 class ActiveRaceState(
     val track: RaceTrack,
     val car: Car,
-    val companion: GirlCompanion,
+    val companion: GirlCompanion?,
     initialRacePhase: RacePhase = RacePhase.COUNTDOWN,
     initialCountdownTimer: Float = 5.0f,
     initialEngineRpm: Float = 1000f,
@@ -268,6 +272,7 @@ class ActiveRaceState(
     var earnedCash by mutableStateOf(0)
     var earnedGems by mutableStateOf(0)
     var earnedAffection by mutableStateOf(0)
+    var newlyDiscoveredCompanion by mutableStateOf<GirlCompanion?>(null)
 }
 
 class GameEngine {
@@ -302,12 +307,14 @@ class GameEngine {
                 saveData.cash.toString(),
                 saveData.gems.toString(),
                 saveData.selectedCarId,
-                saveData.selectedCompanionId,
+                saveData.selectedCompanionId ?: "",
                 saveData.ownedCarIds.joinToString(","),
                 saveData.unlockedTrackIds.joinToString(","),
                 affinities,
                 if (saveData.completedTutorial) "1" else "0",
-                carCustoms
+                carCustoms,
+                saveData.discoveredCompanionIds.joinToString(","),
+                if (saveData.isGameCompleted) "1" else "0"
             ).joinToString("||")
 
             saveGameData(payload)
@@ -320,13 +327,13 @@ class GameEngine {
         val raw = loadGameData() ?: return
         try {
             val parts = raw.split("||")
-            if (parts.size >= 9) {
+            if (parts.size >= 8) {
                 val cash = parts[0].toIntOrNull() ?: 2500
                 val gems = parts[1].toIntOrNull() ?: 50
                 val selectedCarId = parts[2]
-                val selectedCompanionId = parts[3]
+                val rawSelectedComp = parts[3]
+                val selectedCompanionId = if (rawSelectedComp.isNotBlank() && rawSelectedComp != "null") rawSelectedComp else null
                 val ownedCarIds = parts[4].split(",").filter { it.isNotBlank() }.toSet()
-                val unlockedTrackIds = parts[5].split(",").filter { it.isNotBlank() }.toSet()
 
                 val companionAffinities = parts[6].split(";").filter { it.contains(":") }.associate {
                     val pair = it.split(":")
@@ -334,26 +341,51 @@ class GameEngine {
                 }
                 val completedTutorial = parts[7].toIntOrNull() == 1
 
-                val carCustomsMap = parts[8].split(";").filter { it.contains(":") }.associate {
-                    val p = it.split(":")
-                    val carId = p[0]
-                    val values = p[1].split(",")
-                    val engineLvl = values.getOrNull(0)?.toIntOrNull() ?: 0
-                    val tiresLvl = values.getOrNull(1)?.toIntOrNull() ?: 0
-                    val nitroLvl = values.getOrNull(2)?.toIntOrNull() ?: 0
-                    val colorHex = values.getOrNull(3)?.toLongOrNull() ?: 0xFFECEFF1
-                    carId to CarCustomData(engineLvl, tiresLvl, nitroLvl, colorHex)
+                val carCustomsMap = if (parts.size >= 9) {
+                    parts[8].split(";").filter { it.contains(":") }.associate {
+                        val p = it.split(":")
+                        val carId = p[0]
+                        val values = p[1].split(",")
+                        val engineLvl = values.getOrNull(0)?.toIntOrNull() ?: 0
+                        val tiresLvl = values.getOrNull(1)?.toIntOrNull() ?: 0
+                        val nitroLvl = values.getOrNull(2)?.toIntOrNull() ?: 0
+                        val colorHex = values.getOrNull(3)?.toLongOrNull() ?: 0xFFECEFF1
+                        carId to CarCustomData(engineLvl, tiresLvl, nitroLvl, colorHex)
+                    }
+                } else emptyMap()
+
+                val discoveredCompanionIds = if (parts.size >= 10) {
+                    parts[9].split(",").filter { it.isNotBlank() }.toSet()
+                } else emptySet()
+
+                val isGameCompleted = if (parts.size >= 11) {
+                    parts[10].toIntOrNull() == 1
+                } else false
+
+                // Strictly sanitize unlocked tracks based on discovered companions
+                val sanitizedUnlockedTracks = mutableSetOf("track_tutorial")
+                if (discoveredCompanionIds.contains("aoi")) sanitizedUnlockedTracks.add("track_neon_city")
+                if (discoveredCompanionIds.contains("sora")) sanitizedUnlockedTracks.add("track_mountain")
+                if (discoveredCompanionIds.contains("elena")) sanitizedUnlockedTracks.add("track_ocean")
+
+                // Strictly sanitize selected companion
+                val sanitizedSelectedCompanion = if (selectedCompanionId != null && discoveredCompanionIds.contains(selectedCompanionId)) {
+                    selectedCompanionId
+                } else {
+                    discoveredCompanionIds.firstOrNull()
                 }
 
                 saveData = GameSaveData(
                     cash = cash,
                     gems = gems,
                     selectedCarId = if (selectedCarId.isNotBlank()) selectedCarId else "trueno_ae86",
-                    selectedCompanionId = if (selectedCompanionId.isNotBlank()) selectedCompanionId else "aoi",
+                    selectedCompanionId = sanitizedSelectedCompanion,
                     ownedCarIds = if (ownedCarIds.isEmpty()) setOf("trueno_ae86") else ownedCarIds,
-                    unlockedTrackIds = if (unlockedTrackIds.isEmpty()) setOf("track_tutorial", "track_neon_city") else unlockedTrackIds,
+                    unlockedTrackIds = sanitizedUnlockedTracks,
+                    discoveredCompanionIds = discoveredCompanionIds,
                     companionAffinities = companionAffinities,
-                    completedTutorial = completedTutorial
+                    completedTutorial = completedTutorial,
+                    isGameCompleted = isGameCompleted
                 )
 
                 cars = cars.map { car ->
@@ -377,9 +409,11 @@ class GameEngine {
     val currentCar: Car
         get() = cars.find { it.id == saveData.selectedCarId } ?: cars.first()
 
-    val currentCompanion: GirlCompanion
+    val currentCompanion: GirlCompanion?
         get() {
-            val base = companions.find { it.id == saveData.selectedCompanionId } ?: companions.first()
+            val selectedId = saveData.selectedCompanionId ?: return null
+            if (!saveData.discoveredCompanionIds.contains(selectedId)) return null
+            val base = companions.find { it.id == selectedId } ?: return null
             val savedAffection = saveData.companionAffinities[base.id] ?: base.affection
             return base.copy(affection = savedAffection)
         }
@@ -388,6 +422,12 @@ class GameEngine {
         val track = tracks.find { it.id == trackId } ?: tracks.first()
         val car = currentCar
         val companion = currentCompanion
+
+        val initialSpeech = if (companion != null) {
+            "Hold ACCELERATE to rev RPM into the green sweet spot for a PERFECT LAUNCH!"
+        } else {
+            "Rev RPM into the green sweet spot for a PERFECT LAUNCH!"
+        }
 
         activeRaceState = ActiveRaceState(
             track = track,
@@ -398,7 +438,7 @@ class GameEngine {
             initialEngineRpm = 1000f,
             initialCurrentSpeed = 0f,
             initialNextCornerDistance = 220f,
-            initialCompanionSpeech = "Hold ACCELERATE to rev RPM into the green sweet spot for a PERFECT LAUNCH!",
+            initialCompanionSpeech = initialSpeech,
             initialCompanionSpeechTimer = 5.0f
         )
     }
@@ -438,7 +478,7 @@ class GameEngine {
         }
 
         // --- RACING PHASE ---
-        val companionAffection = race.companion.affection.toFloat()
+        val companionAffection = race.companion?.affection?.toFloat() ?: 0f
         val maxSpeed = race.car.effectiveTopSpeed(companionAffection).toFloat()
 
         var targetSpeed = if (race.isNitroActive) maxSpeed * 1.3f else maxSpeed
@@ -461,7 +501,8 @@ class GameEngine {
                 race.isNitroActive = false
             }
         } else {
-            val rechargeRate = 5f * (1f + race.companion.effectiveBonusValue() / 100f)
+            val bonusValue = race.companion?.effectiveBonusValue() ?: 0f
+            val rechargeRate = 5f * (1f + bonusValue / 100f)
             race.nitroLevel = min(100f, race.nitroLevel + rechargeRate * deltaTimeSeconds)
         }
 
@@ -497,8 +538,10 @@ class GameEngine {
                     race.comboMultiplier = 1
                     race.driftDisplayBanner = "CORNER MISSED! (MISS)"
                     race.ratingDisplayTimer = 2.0f
-                    race.companionSpeech = "Aww! You missed the turn completely!"
-                    race.companionSpeechTimer = 2.5f
+                    if (race.companion != null) {
+                        race.companionSpeech = "Aww! You missed the turn completely!"
+                        race.companionSpeechTimer = 2.5f
+                    }
                 } else if (!race.hasAttemptedExit) {
                     evaluateExit(race)
                 }
@@ -553,7 +596,7 @@ class GameEngine {
         val race = activeRaceState ?: return
         race.racePhase = RacePhase.RACING
         
-        val companionAffection = race.companion.affection.toFloat()
+        val companionAffection = race.companion?.affection?.toFloat() ?: 0f
         val maxSpeed = race.car.effectiveTopSpeed(companionAffection).toFloat()
 
         // Target sweet spot: 6400 - 7300 RPM
@@ -576,27 +619,27 @@ class GameEngine {
                 race.currentSpeed = maxSpeed * 0.7f
                 race.driftScore += 1500
                 race.nitroLevel = min(100f, race.nitroLevel + 50f)
-                race.companionSpeech = "PERFECT LAUNCH!! ROCKET START!!"
+                if (race.companion != null) race.companionSpeech = "PERFECT LAUNCH!! ROCKET START!!"
             }
             DriftRating.GREAT -> {
                 race.currentSpeed = maxSpeed * 0.55f
                 race.driftScore += 1000
                 race.nitroLevel = min(100f, race.nitroLevel + 30f)
-                race.companionSpeech = "GREAT START!! Let's go!!"
+                if (race.companion != null) race.companionSpeech = "GREAT START!! Let's go!!"
             }
             DriftRating.GOOD -> {
                 race.currentSpeed = maxSpeed * 0.4f
                 race.driftScore += 500
                 race.nitroLevel = min(100f, race.nitroLevel + 15f)
-                race.companionSpeech = "Good start! Accelerating!"
+                if (race.companion != null) race.companionSpeech = "Good start! Accelerating!"
             }
             DriftRating.LATE -> {
                 race.currentSpeed = maxSpeed * 0.25f
-                race.companionSpeech = "Late start! Pick up speed!"
+                if (race.companion != null) race.companionSpeech = "Late start! Pick up speed!"
             }
             DriftRating.MISS -> {
                 race.currentSpeed = 30f
-                race.companionSpeech = "Wheelspin / Engine stall!! Recover!!"
+                if (race.companion != null) race.companionSpeech = "Wheelspin / Engine stall!! Recover!!"
             }
         }
         race.companionSpeechTimer = 3.0f
@@ -639,11 +682,13 @@ class GameEngine {
             race.comboMultiplier = min(10, race.comboMultiplier + 1)
             race.nitroLevel = min(100f, race.nitroLevel + rating.nitroBonus)
 
-            val speech = race.companion.dialogueLines.random()
-            race.companionSpeech = "${rating.label} ENTRY! $speech"
+            if (race.companion != null) {
+                val speech = race.companion.dialogueLines.random()
+                race.companionSpeech = "${rating.label} ENTRY! $speech"
+            }
         } else {
             race.comboMultiplier = 1
-            race.companionSpeech = "Missed entry point!"
+            if (race.companion != null) race.companionSpeech = "Missed entry point!"
         }
         race.companionSpeechTimer = 2.5f
     }
@@ -680,7 +725,9 @@ class GameEngine {
             race.comboMultiplier = 1
             val missMsg = if (progress < 0.55f) "EARLY EXIT! (MISS)" else "LATE EXIT! (MISS)"
             race.driftDisplayBanner = missMsg
-            race.companionSpeech = if (progress < 0.55f) "Released too early!" else "Held too long past corner!"
+            if (race.companion != null) {
+                race.companionSpeech = if (progress < 0.55f) "Released too early!" else "Held too long past corner!"
+            }
         } else if (race.entryDriftRating == DriftRating.PERFECT && exitRating == DriftRating.PERFECT) {
             race.exitDriftRating = exitRating
             race.lastDriftRating = exitRating
@@ -688,13 +735,13 @@ class GameEngine {
             race.nitroLevel = min(100f, race.nitroLevel + 50f)
             race.comboMultiplier = min(10, race.comboMultiplier + 2)
             race.driftDisplayBanner = "DOUBLE PERFECT DRIFT!! 🚀"
-            race.companionSpeech = "DOUBLE PERFECT DRIFT!! MAGNIFICENT!! 🚀"
+            if (race.companion != null) race.companionSpeech = "DOUBLE PERFECT DRIFT!! MAGNIFICENT!! 🚀"
         } else {
             race.exitDriftRating = exitRating
             race.lastDriftRating = exitRating
             race.driftScore += (600 * exitRating.scoreMultiplier).toInt()
             race.driftDisplayBanner = "${exitRating.label} EXIT!"
-            race.companionSpeech = "${exitRating.label} EXIT!! Great control!"
+            if (race.companion != null) race.companionSpeech = "${exitRating.label} EXIT!! Great control!"
         }
 
         race.ratingDisplayTimer = 2.2f
@@ -705,8 +752,10 @@ class GameEngine {
         val race = activeRaceState ?: return
         if (race.nitroLevel >= 25f && !race.isNitroActive) {
             race.isNitroActive = true
-            race.companionSpeech = "NITRO BOOSTER ENGAGED!!"
-            race.companionSpeechTimer = 2.0f
+            if (race.companion != null) {
+                race.companionSpeech = "NITRO BOOSTER ENGAGED!!"
+                race.companionSpeechTimer = 2.0f
+            }
         }
     }
 
@@ -725,31 +774,88 @@ class GameEngine {
 
         val rewardCash = race.track.rewardCash + (race.driftScore / 10)
         val rewardGems = race.track.rewardGems + (stars * 5)
-        val affectionGain = 8 + (stars * 4)
+        val affectionGain = if (race.companion != null) 8 + (stars * 4) else 0
 
         race.earnedCash = rewardCash
         race.earnedGems = rewardGems
         race.earnedAffection = affectionGain
 
         // Update Save Data
-        val newAffinity = min(100, (saveData.companionAffinities[race.companion.id] ?: 10) + affectionGain)
-        val updatedAffinities = saveData.companionAffinities.toMutableMap().apply {
-            put(race.companion.id, newAffinity)
+        val updatedAffinities = saveData.companionAffinities.toMutableMap()
+        race.companion?.let { comp ->
+            val newAffinity = min(100, (updatedAffinities[comp.id] ?: comp.affection) + affectionGain)
+            updatedAffinities[comp.id] = newAffinity
         }
 
+        // Track unlock logic: next race unlocks ONLY IF the girl for the current race is discovered!
         val updatedUnlockedTracks = saveData.unlockedTrackIds.toMutableSet().apply {
             add(race.track.id)
-            // Unlock next tracks if finished
-            tracks.forEach { add(it.id) }
         }
+
+        // 50% chance to discover new girl ONLY IF 3 stars earned!
+        var newlyDiscovered: GirlCompanion? = null
+        val discoverableGirlId = race.track.discoverableGirlId
+        val updatedDiscovered = saveData.discoveredCompanionIds.toMutableSet()
+        var updatedSelectedCompanionId = saveData.selectedCompanionId
+
+        if (stars == 3 && discoverableGirlId != null && !updatedDiscovered.contains(discoverableGirlId)) {
+            val chanceSuccess = kotlin.random.Random.nextFloat() < 0.5f
+            if (chanceSuccess) {
+                updatedDiscovered.add(discoverableGirlId)
+                val girlObj = companions.find { it.id == discoverableGirlId }
+                if (girlObj != null) {
+                    newlyDiscovered = girlObj
+                    if (!updatedAffinities.containsKey(discoverableGirlId)) {
+                        updatedAffinities[discoverableGirlId] = 10
+                    }
+                    if (updatedSelectedCompanionId.isNullOrEmpty()) {
+                        updatedSelectedCompanionId = discoverableGirlId
+                    }
+                }
+            }
+        }
+
+        // Unlock next race based on discovered girls:
+        if (updatedDiscovered.contains("aoi")) updatedUnlockedTracks.add("track_neon_city")
+        if (updatedDiscovered.contains("sora")) updatedUnlockedTracks.add("track_mountain")
+        if (updatedDiscovered.contains("elena")) updatedUnlockedTracks.add("track_ocean")
+
+        race.newlyDiscoveredCompanion = newlyDiscovered
 
         saveData = saveData.copy(
             cash = saveData.cash + rewardCash,
             gems = saveData.gems + rewardGems,
             companionAffinities = updatedAffinities,
+            discoveredCompanionIds = updatedDiscovered,
+            selectedCompanionId = updatedSelectedCompanionId,
             unlockedTrackIds = updatedUnlockedTracks,
             completedTutorial = true
         )
+
+        checkAndTriggerGameCompletion()
+        persistSaveToDisk()
+    }
+
+    fun checkAndTriggerGameCompletion(): Boolean {
+        val allGirlIds = GameDataDefaults.initialCompanions.map { it.id }.toSet()
+        val discovered = saveData.discoveredCompanionIds
+        if (discovered.containsAll(allGirlIds)) {
+            val allMaxed = allGirlIds.all { girlId ->
+                (saveData.companionAffinities[girlId] ?: 0) >= 100
+            }
+            if (allMaxed) {
+                if (!saveData.isGameCompleted) {
+                    saveData = saveData.copy(isGameCompleted = true)
+                    persistSaveToDisk()
+                }
+                return true
+            }
+        }
+        return false
+    }
+
+    fun resetGameProgress() {
+        saveData = GameSaveData()
         persistSaveToDisk()
     }
 
@@ -818,11 +924,14 @@ class GameEngine {
     }
 
     fun selectCompanion(companionId: String) {
-        saveData = saveData.copy(selectedCompanionId = companionId)
-        persistSaveToDisk()
+        if (saveData.discoveredCompanionIds.contains(companionId)) {
+            saveData = saveData.copy(selectedCompanionId = companionId)
+            persistSaveToDisk()
+        }
     }
 
     fun goOnDate(companionId: String, dateActivity: DateActivity): Boolean {
+        if (!saveData.discoveredCompanionIds.contains(companionId)) return false
         if (saveData.gems >= dateActivity.costGems) {
             val currentAffinity = saveData.companionAffinities[companionId] ?: 10
             val newAffinity = min(100, currentAffinity + dateActivity.affectionGain)
@@ -833,6 +942,7 @@ class GameEngine {
                 gems = saveData.gems - dateActivity.costGems,
                 companionAffinities = updatedAffinities
             )
+            checkAndTriggerGameCompletion()
             persistSaveToDisk()
             return true
         }
@@ -840,6 +950,7 @@ class GameEngine {
     }
 
     fun giveGift(companionId: String, giftItem: GiftItem): Boolean {
+        if (!saveData.discoveredCompanionIds.contains(companionId)) return false
         if (saveData.gems >= giftItem.costGems) {
             val currentAffinity = saveData.companionAffinities[companionId] ?: 10
             val newAffinity = min(100, currentAffinity + giftItem.affectionGain)
@@ -850,6 +961,7 @@ class GameEngine {
                 gems = saveData.gems - giftItem.costGems,
                 companionAffinities = updatedAffinities
             )
+            checkAndTriggerGameCompletion()
             persistSaveToDisk()
             return true
         }

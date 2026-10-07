@@ -166,7 +166,7 @@ fun GarageScreen(
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Text(
-                    text = "${companion.name} Buff: +${companion.affection}%",
+                    text = if (companion != null) "${companion.name} Buff: +${companion.affection}%" else "No Partner Buff",
                     color = Color.White,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
@@ -183,7 +183,7 @@ fun GarageScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Performance Stat Bars
-        val affectionBonus = companion.affection.toFloat()
+        val affectionBonus = companion?.affection?.toFloat() ?: 0f
         val effSpeed = previewCar.effectiveTopSpeed(affectionBonus)
         val effDrift = previewCar.effectiveDriftControl(affectionBonus)
         val effNitro = previewCar.effectiveNitroCapacity(affectionBonus)

@@ -51,7 +51,7 @@ fun App() {
                         gameEngine = gameEngine,
                         onBackToHome = { currentScreen = Screen.HOME },
                         onStartRace = {
-                            gameEngine.startRace(gameEngine.saveData.unlockedTrackIds.firstOrNull() ?: "track_neon_city")
+                            gameEngine.startRace(gameEngine.saveData.unlockedTrackIds.firstOrNull() ?: "track_tutorial")
                             currentScreen = Screen.RACE
                         }
                     )

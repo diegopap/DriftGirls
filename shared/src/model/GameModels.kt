@@ -118,16 +118,19 @@ data class RaceTrack(
     val rewardCash: Int,
     val rewardGems: Int,
     val primaryColorHex: Long,
-    val isTutorial: Boolean = false
+    val isTutorial: Boolean = false,
+    val discoverableGirlId: String? = null
 )
 
 data class GameSaveData(
     val cash: Int = 2500,
     val gems: Int = 50,
     val selectedCarId: String = "trueno_ae86",
-    val selectedCompanionId: String = "aoi",
+    val selectedCompanionId: String? = null,
     val ownedCarIds: Set<String> = setOf("trueno_ae86"),
-    val unlockedTrackIds: Set<String> = setOf("track_tutorial", "track_neon_city"),
-    val companionAffinities: Map<String, Int> = mapOf("aoi" to 20, "sora" to 10, "elena" to 5, "mia" to 0),
-    val completedTutorial: Boolean = false
+    val unlockedTrackIds: Set<String> = setOf("track_tutorial"),
+    val discoveredCompanionIds: Set<String> = emptySet(),
+    val companionAffinities: Map<String, Int> = emptyMap(),
+    val completedTutorial: Boolean = false,
+    val isGameCompleted: Boolean = false
 )

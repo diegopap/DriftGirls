@@ -30,6 +30,7 @@ fun HomeScreen(
 ) {
     val companion = gameEngine.currentCompanion
     val car = gameEngine.currentCar
+    val isGameCompleted = gameEngine.saveData.isGameCompleted
 
     Column(
         modifier = Modifier
@@ -43,7 +44,7 @@ fun HomeScreen(
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // Top Header Title & Cash/Gems Status Bar
+        // Top Header Title & Status Bar
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -93,6 +94,36 @@ fun HomeScreen(
             }
         }
 
+        // Game Completed Banner
+        if (isGameCompleted) {
+            Spacer(modifier = Modifier.height(14.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFD600))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "👑 GAME COMPLETED - ULTIMATE DRIFT KING! 👑",
+                        color = Color.Black,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                    Text(
+                        text = "You discovered all 4 Drift Girls and achieved 100% Affection with everyone!",
+                        color = Color.Black.copy(alpha = 0.8f),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(20.dp))
 
         // Center Hero Card Showcase (Companion & Car)
@@ -115,7 +146,11 @@ fun HomeScreen(
                         .padding(12.dp)
                 ) {
                     Text(
-                        text = "💬 \"Hey driver! Ready to set some new drift records today?\"",
+                        text = if (companion != null) {
+                            "💬 \"Hey driver! Ready to set some new drift records today?\""
+                        } else {
+                            "💬 \"No companion selected yet! Win races with 3 stars for a 50% chance to discover girls!\""
+                        },
                         color = Color.White,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
@@ -137,13 +172,13 @@ fun HomeScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = companion.name,
+                            text = companion?.name ?: "No Partner",
                             color = Color.White,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Black
                         )
                         Text(
-                            text = "Affection: ${companion.affection}%",
+                            text = if (companion != null) "Affection: ${companion.affection}%" else "Locked",
                             color = Color(0xFFFF80AB),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
@@ -152,6 +187,7 @@ fun HomeScreen(
 
                     // Car Canvas
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        val companionAffection = companion?.affection?.toFloat() ?: 0f
                         CarCanvas(
                             car = car,
                             driftAngle = 15f,
@@ -165,7 +201,7 @@ fun HomeScreen(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "${car.effectiveTopSpeed(companion.affection.toFloat())} KM/H",
+                            text = "${car.effectiveTopSpeed(companionAffection)} KM/H",
                             color = Color(0xFF00E5FF),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
@@ -229,6 +265,21 @@ fun HomeScreen(
                 color = Color(0xFF00E5FF),
                 modifier = Modifier.weight(1f),
                 onClick = onNavigateToTracks
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Restart / Reset Game Progress Button
+        TextButton(
+            onClick = { gameEngine.resetGameProgress() },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
+            Text(
+                text = "🔄 RESET GAME PROGRESS (FRESH START)",
+                color = Color.White.copy(alpha = 0.4f),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold
             )
         }
     }

@@ -67,7 +67,7 @@ fun RaceScreen(
             isNitroActive = race.isNitroActive
         )
 
-        // 2. Car Canvas View (Anchored to Fixed Bottom Track Center + Player Steering)
+        // 2. Car Canvas View
         val steeringShift = when {
             race.isDriftingLeft -> (-35).dp
             race.isDriftingRight -> 35.dp
@@ -204,43 +204,45 @@ fun RaceScreen(
         }
 
         // 4. Live Companion Reaction Overlay Banner (Top-Left)
-        Row(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(top = if (isLandscape) 75.dp else 150.dp, start = 16.dp, end = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            CompanionAvatarCanvas(
-                companion = race.companion,
-                expression = when {
-                    race.lastDriftRating == com.driftgirls.model.DriftRating.PERFECT -> "EXCITED"
-                    race.lastDriftRating == com.driftgirls.model.DriftRating.GREAT -> "WINK"
-                    race.lastDriftRating == com.driftgirls.model.DriftRating.MISS -> "SURPRISED"
-                    else -> "HAPPY"
-                },
-                modifier = Modifier.size(if (isLandscape) 48.dp else 64.dp)
-            )
+        if (race.companion != null) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(top = if (isLandscape) 75.dp else 150.dp, start = 16.dp, end = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CompanionAvatarCanvas(
+                    companion = race.companion,
+                    expression = when {
+                        race.lastDriftRating == com.driftgirls.model.DriftRating.PERFECT -> "EXCITED"
+                        race.lastDriftRating == com.driftgirls.model.DriftRating.GREAT -> "WINK"
+                        race.lastDriftRating == com.driftgirls.model.DriftRating.MISS -> "SURPRISED"
+                        else -> "HAPPY"
+                    },
+                    modifier = Modifier.size(if (isLandscape) 48.dp else 64.dp)
+                )
 
-            Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(8.dp))
 
-            race.companionSpeech?.let { speech ->
-                Box(
-                    modifier = Modifier
-                        .background(
-                            Brush.horizontalGradient(
-                                listOf(Color(0xFF880E4F), Color(0xFFAD1457))
-                            ),
-                            shape = RoundedCornerShape(14.dp)
+                race.companionSpeech?.let { speech ->
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(Color(0xFF880E4F), Color(0xFFAD1457))
+                                ),
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                            .border(1.5.dp, Color(0xFFFF80AB), RoundedCornerShape(14.dp))
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = speech,
+                            color = Color.White,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
                         )
-                        .border(1.5.dp, Color(0xFFFF80AB), RoundedCornerShape(14.dp))
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = speech,
-                        color = Color.White,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    }
                 }
             }
         }
@@ -306,7 +308,7 @@ fun RaceScreen(
             }
         }
 
-        // 6. Drift Rating Flash Badge (Entry / Exit / Double Perfect)
+        // 6. Drift Rating Flash Badge
         race.driftDisplayBanner?.let { bannerText ->
             val badgeColor = race.lastDriftRating?.colorHex ?: 0xFFFFD600
             Box(
@@ -339,9 +341,7 @@ fun RaceScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Bottom
         ) {
-            // Left Controls Column: NITRO on TOP of DRIFT LEFT!
             Column(horizontalAlignment = Alignment.Start) {
-                // NITRO Boost Button (positioned directly ABOVE drift left!)
                 Button(
                     onClick = { gameEngine.activateNitro() },
                     modifier = Modifier.size(if (isLandscape) 95.dp else 110.dp, if (isLandscape) 46.dp else 56.dp),
@@ -357,7 +357,6 @@ fun RaceScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // DRIFT LEFT Pad
                 Box(
                     modifier = Modifier
                         .size(if (isLandscape) 110.dp else 110.dp, if (isLandscape) 64.dp else 80.dp)
@@ -382,10 +381,8 @@ fun RaceScreen(
                 }
             }
 
-            // Right Controls Column: GAS button (visible ONLY during COUNTDOWN, hidden during RACING) on TOP of DRIFT RIGHT!
             Column(horizontalAlignment = Alignment.End) {
                 if (race.racePhase == RacePhase.COUNTDOWN) {
-                    // ACCELERATE / GAS Button (visible ONLY during countdown phase!)
                     Box(
                         modifier = Modifier
                             .size(if (isLandscape) 100.dp else 110.dp, if (isLandscape) 46.dp else 56.dp)
@@ -416,7 +413,6 @@ fun RaceScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                // DRIFT RIGHT Pad
                 Box(
                     modifier = Modifier
                         .size(if (isLandscape) 110.dp else 110.dp, if (isLandscape) 64.dp else 80.dp)
@@ -480,7 +476,7 @@ fun RaceScreen(
                         Text(
                             text = "1. During 5s countdown, hold GAS 🏎️ to keep RPM in the GREEN ZONE (6,400 - 7,300 RPM) for a PERFECT LAUNCH!\n\n" +
                                     "2. Tap & hold ◄ DRIFT or DRIFT ► in corners for high-score drifts!\n\n" +
-                                    "3. Perfect timing awards PERFECT and GREAT drift ratings to charge your Nitro!\n\n" +
+                                    "3. Get 3 STARS (5000+ Score) for a 50% chance to DISCOVER THE TRACK'S GIRL and unlock the next race!\n\n" +
                                     "4. Hit ⚡ NITRO to burst into top speeds!",
                             color = Color.White,
                             fontSize = 12.sp,
@@ -503,6 +499,8 @@ fun RaceScreen(
 
         // 9. Race Finish Victory Dialog
         if (race.isFinished) {
+            val newlyMet = race.newlyDiscoveredCompanion
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -538,6 +536,81 @@ fun RaceScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
+                        // NEW GIRL DISCOVERED POPUP CARD!
+                        if (newlyMet != null) {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFAD1457)),
+                                border = androidx.compose.foundation.BorderStroke(2.dp, Color(0xFFFF80AB))
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(12.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = "🎉 NEW GIRL DISCOVERED!! 🎉",
+                                        color = Color(0xFFFFD600),
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Black
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    CompanionAvatarCanvas(
+                                        companion = newlyMet,
+                                        expression = "EXCITED",
+                                        modifier = Modifier.size(70.dp)
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = newlyMet.name,
+                                        color = Color.White,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Black
+                                    )
+                                    Text(
+                                        text = newlyMet.title,
+                                        color = Color(0xFFFF80AB),
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "She is now unlocked & the next race is UNLOCKED!",
+                                        color = Color.White.copy(alpha = 0.9f),
+                                        fontSize = 11.sp,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                        } else {
+                            val girlId = race.track.discoverableGirlId
+                            val isGirlDiscovered = girlId != null && gameEngine.saveData.discoveredCompanionIds.contains(girlId)
+                            if (girlId != null && !isGirlDiscovered) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(Color(0xFF28113D), RoundedCornerShape(12.dp))
+                                        .border(1.dp, Color(0xFFFFD600).copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                                        .padding(10.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = if (race.starsEarned == 3) {
+                                            "🎲 3 Stars Earned! (50% Discovery Chance Missed - Race again to discover her & unlock the next track!)"
+                                        } else {
+                                            "🔒 Need 3 Stars (5000+ Drift Score) for a 50% chance to discover the girl & unlock the next race!"
+                                        },
+                                        color = Color(0xFFFFD600),
+                                        fontSize = 11.sp,
+                                        textAlign = TextAlign.Center,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
+                            }
+                        }
+
                         // Rewards
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -551,13 +624,24 @@ fun RaceScreen(
                                 Text("GEMS", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 Text("+${race.earnedGems} 💎", color = Color(0xFF00E5FF), fontSize = 16.sp, fontWeight = FontWeight.Black)
                             }
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("AFFECTION", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                Text("+${race.earnedAffection} 💕", color = Color(0xFFFF4081), fontSize = 16.sp, fontWeight = FontWeight.Black)
+                            if (race.companion != null) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text("AFFECTION", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    Text("+${race.earnedAffection} 💕", color = Color(0xFFFF4081), fontSize = 16.sp, fontWeight = FontWeight.Black)
+                                }
                             }
                         }
 
                         Spacer(modifier = Modifier.height(18.dp))
+
+                        val nextTrackMap = mapOf(
+                            "track_tutorial" to "track_neon_city",
+                            "track_neon_city" to "track_mountain",
+                            "track_mountain" to "track_ocean"
+                        )
+                        val nextTrackId = nextTrackMap[race.track.id]
+                        val trackGirlId = race.track.discoverableGirlId
+                        val isGirlDiscoveredForTrack = trackGirlId != null && gameEngine.saveData.discoveredCompanionIds.contains(trackGirlId)
 
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             OutlinedButton(
@@ -567,12 +651,50 @@ fun RaceScreen(
                                 Text("GARAGE", color = Color.White)
                             }
                             Spacer(modifier = Modifier.width(12.dp))
-                            Button(
-                                onClick = onBackToHome,
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF007F))
-                            ) {
-                                Text("CONTINUE", color = Color.White, fontWeight = FontWeight.Bold)
+
+                            if (newlyMet != null) {
+                                // Girl WAS FOUND! Automatically race next track!
+                                Button(
+                                    onClick = {
+                                        if (nextTrackId != null) {
+                                            gameEngine.startRace(nextTrackId)
+                                        } else {
+                                            onBackToHome()
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF76FF03))
+                                ) {
+                                    Text(
+                                        text = if (nextTrackId != null) "NEXT RACE 🏁" else "CONTINUE",
+                                        color = Color.Black,
+                                        fontWeight = FontWeight.Black
+                                    )
+                                }
+                            } else if (trackGirlId != null && !isGirlDiscoveredForTrack) {
+                                // Missed finding the girl! RETRY race to attempt discovering her again!
+                                Button(
+                                    onClick = {
+                                        gameEngine.startRace(race.track.id)
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD600))
+                                ) {
+                                    Text(
+                                        text = "RETRY RACE 🔄",
+                                        color = Color.Black,
+                                        fontWeight = FontWeight.Black
+                                    )
+                                }
+                            } else {
+                                // Already discovered or standard continuation
+                                Button(
+                                    onClick = onBackToHome,
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF007F))
+                                ) {
+                                    Text("CONTINUE", color = Color.White, fontWeight = FontWeight.Bold)
+                                }
                             }
                         }
                     }

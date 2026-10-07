@@ -1,8 +1,6 @@
 package com.driftgirls.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,7 +15,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.driftgirls.engine.GameEngine
-import com.driftgirls.model.RaceTrack
 
 @Composable
 fun TrackSelectScreen(
@@ -27,6 +24,14 @@ fun TrackSelectScreen(
 ) {
     val tracks = gameEngine.tracks
     val unlockedTrackIds = gameEngine.saveData.unlockedTrackIds
+    val discoveredCompanionIds = gameEngine.saveData.discoveredCompanionIds
+
+    val girlNamesMap = mapOf(
+        "aoi" to "Aoi",
+        "sora" to "Sora",
+        "elena" to "Elena",
+        "mia" to "Mia"
+    )
 
     Column(
         modifier = Modifier
@@ -73,14 +78,19 @@ fun TrackSelectScreen(
         ) {
             items(tracks) { track ->
                 val isUnlocked = unlockedTrackIds.contains(track.id)
+                val girlId = track.discoverableGirlId
+                val girlName = girlNamesMap[girlId] ?: ""
+                val isGirlDiscovered = girlId != null && discoveredCompanionIds.contains(girlId)
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162B48)),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isUnlocked) Color(0xFF162B48) else Color(0xFF0D182A)
+                    ),
                     border = androidx.compose.foundation.BorderStroke(
                         width = 1.5.dp,
-                        color = Color(track.primaryColorHex).copy(alpha = 0.6f)
+                        color = if (isUnlocked) Color(track.primaryColorHex).copy(alpha = 0.6f) else Color.Gray.copy(alpha = 0.2f)
                     )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -93,7 +103,7 @@ fun TrackSelectScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
                                         text = track.name,
-                                        color = Color.White,
+                                        color = if (isUnlocked) Color.White else Color.Gray,
                                         fontSize = 18.sp,
                                         fontWeight = FontWeight.Black
                                     )
@@ -118,27 +128,55 @@ fun TrackSelectScreen(
 
                             Box(
                                 modifier = Modifier
-                                    .background(Color(track.primaryColorHex), RoundedCornerShape(8.dp))
+                                    .background(
+                                        if (isUnlocked) Color(track.primaryColorHex) else Color.Gray.copy(alpha = 0.3f),
+                                        RoundedCornerShape(8.dp)
+                                    )
                                     .padding(horizontal = 8.dp, vertical = 4.dp)
                             ) {
                                 Text(
-                                    text = if (isUnlocked) "UNLOCKED" else "LOCKED",
-                                    color = Color.Black,
+                                    text = if (isUnlocked) "UNLOCKED" else "LOCKED 🔒",
+                                    color = if (isUnlocked) Color.Black else Color.White.copy(alpha = 0.6f),
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Black
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // Discoverable Girl Badge
+                        if (girlName.isNotBlank()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        if (isGirlDiscovered) Color(0xFFFF007F).copy(alpha = 0.25f) else Color(0xFFFFD600).copy(alpha = 0.15f),
+                                        RoundedCornerShape(10.dp)
+                                    )
+                                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = if (isGirlDiscovered) {
+                                        "💕 COMPANION DISCOVERED: $girlName ✓"
+                                    } else {
+                                        "🔒 DISCOVER GIRL: $girlName (3 Stars = 50% Chance)"
+                                    },
+                                    color = if (isGirlDiscovered) Color(0xFFFF80AB) else Color(0xFFFFD600),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
 
                         // Distance & Corners stats
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Distance: ${track.distanceMeters}m", color = Color.White, fontSize = 12.sp)
-                            Text("Hairpins: ${track.cornersCount} Corners", color = Color.White, fontSize = 12.sp)
+                            Text("Distance: ${track.distanceMeters}m", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
+                            Text("Hairpins: ${track.cornersCount} Corners", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -152,7 +190,17 @@ fun TrackSelectScreen(
                             Text("+${track.rewardGems} 💎", color = Color(0xFF00E5FF), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        if (!isUnlocked) {
+                            Text(
+                                text = "🔒 Race locked! You need to discover the girl from the previous race to unlock!",
+                                color = Color(0xFFFF5252),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
 
                         Button(
                             onClick = {
@@ -162,11 +210,14 @@ fun TrackSelectScreen(
                             enabled = isUnlocked,
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(track.primaryColorHex))
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(track.primaryColorHex),
+                                disabledContainerColor = Color.Gray.copy(alpha = 0.2f)
+                            )
                         ) {
                             Text(
-                                text = "ENTER RACE 🏁",
-                                color = Color.Black,
+                                text = if (isUnlocked) "ENTER RACE 🏁" else "LOCKED",
+                                color = if (isUnlocked) Color.Black else Color.White.copy(alpha = 0.4f),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Black
                             )

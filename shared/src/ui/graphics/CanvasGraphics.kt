@@ -30,10 +30,46 @@ import kotlin.math.sin
 
 @Composable
 fun CompanionAvatarCanvas(
-    companion: GirlCompanion,
+    companion: GirlCompanion?,
     expression: String = "HAPPY", // HAPPY, WINK, SURPRISED, EXCITED
     modifier: Modifier = Modifier.size(100.dp)
 ) {
+    if (companion == null) {
+        Canvas(modifier = modifier) {
+            val width = size.width
+            val height = size.height
+            val centerX = width / 2f
+            val centerY = height / 2f
+
+            drawCircle(
+                color = Color(0xFF2C103D),
+                radius = width * 0.48f,
+                center = Offset(centerX, centerY)
+            )
+            drawCircle(
+                color = Color(0xFF160B24),
+                radius = width * 0.42f,
+                center = Offset(centerX, centerY)
+            )
+            // Head silhouette
+            drawCircle(
+                color = Color(0xFF4A256B),
+                radius = width * 0.18f,
+                center = Offset(centerX, centerY - height * 0.08f)
+            )
+            // Shoulders
+            drawArc(
+                color = Color(0xFF4A256B),
+                startAngle = 180f,
+                sweepAngle = 180f,
+                useCenter = true,
+                topLeft = Offset(centerX - width * 0.28f, centerY + height * 0.02f),
+                size = Size(width * 0.56f, height * 0.35f)
+            )
+        }
+        return
+    }
+
     val accentColor = Color(companion.accentColorHex)
 
     Canvas(modifier = modifier) {
