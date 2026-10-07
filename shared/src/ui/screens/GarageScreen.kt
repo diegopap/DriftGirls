@@ -188,15 +188,43 @@ fun GarageScreen(
         val effDrift = previewCar.effectiveDriftControl(affectionBonus)
         val effNitro = previewCar.effectiveNitroCapacity(affectionBonus)
 
-        StatRow("TOP SPEED", "$effSpeed KM/H", effSpeed / 400f, Color(0xFFFF3D00)) {
+        val engineCost = gameEngine.getUpgradeCost(previewCar, "ENGINE")
+        val tiresCost = gameEngine.getUpgradeCost(previewCar, "TIRES")
+        val nitroCost = gameEngine.getUpgradeCost(previewCar, "NITRO")
+
+        StatRow(
+            label = "TOP SPEED",
+            valueText = "$effSpeed KM/H",
+            progress = effSpeed / 400f,
+            level = previewCar.engineUpgradeLevel,
+            upgradeCost = engineCost,
+            canAfford = gameEngine.saveData.cash >= engineCost,
+            barColor = Color(0xFFFF3D00)
+        ) {
             if (isOwned) gameEngine.upgradeCarComponent(previewCar.id, "ENGINE")
         }
         Spacer(modifier = Modifier.height(8.dp))
-        StatRow("DRIFT CONTROL", "$effDrift / 100", effDrift / 100f, Color(0xFFFF007F)) {
+        StatRow(
+            label = "DRIFT CONTROL",
+            valueText = "$effDrift / 100",
+            progress = effDrift / 100f,
+            level = previewCar.tiresUpgradeLevel,
+            upgradeCost = tiresCost,
+            canAfford = gameEngine.saveData.cash >= tiresCost,
+            barColor = Color(0xFFFF007F)
+        ) {
             if (isOwned) gameEngine.upgradeCarComponent(previewCar.id, "TIRES")
         }
         Spacer(modifier = Modifier.height(8.dp))
-        StatRow("NITRO CAPACITY", "$effNitro / 100", effNitro / 100f, Color(0xFF00E5FF)) {
+        StatRow(
+            label = "NITRO CAPACITY",
+            valueText = "$effNitro / 100",
+            progress = effNitro / 100f,
+            level = previewCar.nitroUpgradeLevel,
+            upgradeCost = nitroCost,
+            canAfford = gameEngine.saveData.cash >= nitroCost,
+            barColor = Color(0xFF00E5FF)
+        ) {
             if (isOwned) gameEngine.upgradeCarComponent(previewCar.id, "NITRO")
         }
 
@@ -276,6 +304,9 @@ private fun StatRow(
     label: String,
     valueText: String,
     progress: Float,
+    level: Int,
+    upgradeCost: Int,
+    canAfford: Boolean,
     barColor: Color,
     onUpgrade: () -> Unit
 ) {
@@ -285,7 +316,22 @@ private fun StatRow(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(label, color = Color.White.copy(alpha = 0.7f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(label, color = Color.White.copy(alpha = 0.7f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.width(6.dp))
+                Box(
+                    modifier = Modifier
+                        .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 4.dp, vertical = 1.dp)
+                ) {
+                    Text(
+                        text = if (level >= 5) "MAX" else "LV. $level",
+                        color = if (level >= 5) Color(0xFFFFD600) else Color(0xFF00E5FF),
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
+            }
             Text(valueText, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Black)
         }
         Spacer(modifier = Modifier.height(4.dp))
@@ -302,10 +348,20 @@ private fun StatRow(
             Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = onUpgrade,
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.15f))
+                enabled = level < 5 && canAfford,
+                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (level >= 5) Color.Gray.copy(alpha = 0.3f) else if (canAfford) Color(0xFF76FF03) else Color.White.copy(alpha = 0.15f),
+                    disabledContainerColor = Color.White.copy(alpha = 0.1f)
+                ),
+                shape = RoundedCornerShape(8.dp)
             ) {
-                Text("UPGRADE", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    text = if (level >= 5) "MAX" else "+UPGRADE ($$upgradeCost)",
+                    color = if (level >= 5) Color.White.copy(alpha = 0.5f) else if (canAfford) Color.Black else Color.White.copy(alpha = 0.6f),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Black
+                )
             }
         }
     }

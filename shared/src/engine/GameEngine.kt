@@ -3,9 +3,18 @@ package com.driftgirls.engine
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.driftgirls.loadGameData
 import com.driftgirls.model.*
+import com.driftgirls.saveGameData
 import kotlin.math.max
 import kotlin.math.min
+
+private data class CarCustomData(
+    val engineLvl: Int,
+    val tiresLvl: Int,
+    val nitroLvl: Int,
+    val colorHex: Long
+)
 
 object GameDataDefaults {
     val initialCars = listOf(
@@ -277,6 +286,93 @@ class GameEngine {
     var activeRaceState by mutableStateOf<ActiveRaceState?>(null)
         private set
 
+    init {
+        loadSaveFromDisk()
+    }
+
+    private fun persistSaveToDisk() {
+        try {
+            val carCustoms = cars.joinToString(";") {
+                "${it.id}:${it.engineUpgradeLevel},${it.tiresUpgradeLevel},${it.nitroUpgradeLevel},${it.colorHex}"
+            }
+            val affinities = saveData.companionAffinities.entries.joinToString(";") {
+                "${it.key}:${it.value}"
+            }
+            val payload = listOf(
+                saveData.cash.toString(),
+                saveData.gems.toString(),
+                saveData.selectedCarId,
+                saveData.selectedCompanionId,
+                saveData.ownedCarIds.joinToString(","),
+                saveData.unlockedTrackIds.joinToString(","),
+                affinities,
+                if (saveData.completedTutorial) "1" else "0",
+                carCustoms
+            ).joinToString("||")
+
+            saveGameData(payload)
+        } catch (e: Exception) {
+            // Fail-safe
+        }
+    }
+
+    private fun loadSaveFromDisk() {
+        val raw = loadGameData() ?: return
+        try {
+            val parts = raw.split("||")
+            if (parts.size >= 9) {
+                val cash = parts[0].toIntOrNull() ?: 2500
+                val gems = parts[1].toIntOrNull() ?: 50
+                val selectedCarId = parts[2]
+                val selectedCompanionId = parts[3]
+                val ownedCarIds = parts[4].split(",").filter { it.isNotBlank() }.toSet()
+                val unlockedTrackIds = parts[5].split(",").filter { it.isNotBlank() }.toSet()
+
+                val companionAffinities = parts[6].split(";").filter { it.contains(":") }.associate {
+                    val pair = it.split(":")
+                    pair[0] to (pair[1].toIntOrNull() ?: 10)
+                }
+                val completedTutorial = parts[7].toIntOrNull() == 1
+
+                val carCustomsMap = parts[8].split(";").filter { it.contains(":") }.associate {
+                    val p = it.split(":")
+                    val carId = p[0]
+                    val values = p[1].split(",")
+                    val engineLvl = values.getOrNull(0)?.toIntOrNull() ?: 0
+                    val tiresLvl = values.getOrNull(1)?.toIntOrNull() ?: 0
+                    val nitroLvl = values.getOrNull(2)?.toIntOrNull() ?: 0
+                    val colorHex = values.getOrNull(3)?.toLongOrNull() ?: 0xFFECEFF1
+                    carId to CarCustomData(engineLvl, tiresLvl, nitroLvl, colorHex)
+                }
+
+                saveData = GameSaveData(
+                    cash = cash,
+                    gems = gems,
+                    selectedCarId = if (selectedCarId.isNotBlank()) selectedCarId else "trueno_ae86",
+                    selectedCompanionId = if (selectedCompanionId.isNotBlank()) selectedCompanionId else "aoi",
+                    ownedCarIds = if (ownedCarIds.isEmpty()) setOf("trueno_ae86") else ownedCarIds,
+                    unlockedTrackIds = if (unlockedTrackIds.isEmpty()) setOf("track_tutorial", "track_neon_city") else unlockedTrackIds,
+                    companionAffinities = companionAffinities,
+                    completedTutorial = completedTutorial
+                )
+
+                cars = cars.map { car ->
+                    val custom = carCustomsMap[car.id]
+                    if (custom != null) {
+                        car.copy(
+                            engineUpgradeLevel = custom.engineLvl,
+                            tiresUpgradeLevel = custom.tiresLvl,
+                            nitroUpgradeLevel = custom.nitroLvl,
+                            colorHex = custom.colorHex
+                        )
+                    } else car
+                }
+            }
+        } catch (e: Exception) {
+            // Graceful fallback to initial state on corrupted or invalid save format
+        }
+    }
+
     // Current Active Models
     val currentCar: Car
         get() = cars.find { it.id == saveData.selectedCarId } ?: cars.first()
@@ -393,8 +489,17 @@ class GameEngine {
             }
 
             if (race.cornerProgress >= 1f) {
-                // If corner completes and exit was never evaluated (e.g. released early or never released):
-                if (race.hasAttemptedEntry && !race.hasAttemptedExit) {
+                // If corner completes and player never pressed any button, evaluate a CORNER MISSED rating!
+                if (!race.hasAttemptedEntry) {
+                    race.entryDriftRating = DriftRating.MISS
+                    race.exitDriftRating = DriftRating.MISS
+                    race.lastDriftRating = DriftRating.MISS
+                    race.comboMultiplier = 1
+                    race.driftDisplayBanner = "CORNER MISSED! (MISS)"
+                    race.ratingDisplayTimer = 2.0f
+                    race.companionSpeech = "Aww! You missed the turn completely!"
+                    race.companionSpeechTimer = 2.5f
+                } else if (!race.hasAttemptedExit) {
                     evaluateExit(race)
                 }
 
@@ -645,11 +750,13 @@ class GameEngine {
             unlockedTrackIds = updatedUnlockedTracks,
             completedTutorial = true
         )
+        persistSaveToDisk()
     }
 
     fun selectCar(carId: String) {
         if (saveData.ownedCarIds.contains(carId)) {
             saveData = saveData.copy(selectedCarId = carId)
+            persistSaveToDisk()
         }
     }
 
@@ -661,12 +768,31 @@ class GameEngine {
                 ownedCarIds = newOwned,
                 selectedCarId = car.id
             )
+            persistSaveToDisk()
         }
+    }
+
+    fun getUpgradeCost(car: Car, component: String): Int {
+        val level = when (component) {
+            "ENGINE" -> car.engineUpgradeLevel
+            "TIRES" -> car.tiresUpgradeLevel
+            "NITRO" -> car.nitroUpgradeLevel
+            else -> 0
+        }
+        if (level >= 5) return 0
+        return 1000 * (level + 1)
     }
 
     fun upgradeCarComponent(carId: String, component: String) {
         val car = cars.find { it.id == carId } ?: return
-        val upgradeCost = 1000 * (car.engineUpgradeLevel + 1)
+        val level = when (component) {
+            "ENGINE" -> car.engineUpgradeLevel
+            "TIRES" -> car.tiresUpgradeLevel
+            "NITRO" -> car.nitroUpgradeLevel
+            else -> 0
+        }
+        if (level >= 5) return
+        val upgradeCost = getUpgradeCost(car, component)
         if (saveData.cash >= upgradeCost) {
             val updatedCars = cars.map {
                 if (it.id == carId) {
@@ -680,6 +806,7 @@ class GameEngine {
             }
             cars = updatedCars
             saveData = saveData.copy(cash = saveData.cash - upgradeCost)
+            persistSaveToDisk()
         }
     }
 
@@ -687,10 +814,12 @@ class GameEngine {
         cars = cars.map {
             if (it.id == carId) it.copy(colorHex = colorHex) else it
         }
+        persistSaveToDisk()
     }
 
     fun selectCompanion(companionId: String) {
         saveData = saveData.copy(selectedCompanionId = companionId)
+        persistSaveToDisk()
     }
 
     fun goOnDate(companionId: String, dateActivity: DateActivity): Boolean {
@@ -704,6 +833,7 @@ class GameEngine {
                 gems = saveData.gems - dateActivity.costGems,
                 companionAffinities = updatedAffinities
             )
+            persistSaveToDisk()
             return true
         }
         return false
@@ -720,6 +850,7 @@ class GameEngine {
                 gems = saveData.gems - giftItem.costGems,
                 companionAffinities = updatedAffinities
             )
+            persistSaveToDisk()
             return true
         }
         return false

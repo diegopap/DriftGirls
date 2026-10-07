@@ -7,3 +7,7 @@ class IOSPlatform: Platform {
 }
 
 actual fun getPlatform(): Platform = IOSPlatform()
+
+actual fun saveGameData(data: String) {}
+
+actual fun loadGameData(): String? = null

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,7 +26,7 @@ enum class Screen {
 @DevelopmentEntryPoint
 fun App() {
     val gameEngine = remember { GameEngine() }
-    var currentScreen by remember { mutableStateOf(Screen.HOME) }
+    var currentScreen by rememberSaveable { mutableStateOf(Screen.HOME) }
 
     MaterialTheme {
         Surface(
