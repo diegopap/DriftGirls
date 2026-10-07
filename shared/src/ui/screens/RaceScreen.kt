@@ -25,6 +25,7 @@ import com.driftgirls.engine.GameEngine
 import com.driftgirls.model.RacePhase
 import com.driftgirls.ui.graphics.ArcadeTrackCanvas
 import com.driftgirls.ui.graphics.CarCanvas
+import com.driftgirls.ui.graphics.CircularTachometer
 import com.driftgirls.ui.graphics.CompanionAvatarCanvas
 
 @Composable
@@ -268,8 +269,8 @@ fun RaceScreen(
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Card(
-                    modifier = Modifier.width(if (isLandscape) 250.dp else 300.dp),
-                    shape = RoundedCornerShape(18.dp),
+                    modifier = Modifier.width(if (isLandscape) 260.dp else 290.dp),
+                    shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.85f)),
                     border = androidx.compose.foundation.BorderStroke(2.dp, Color(0xFF00E5FF))
                 ) {
@@ -284,41 +285,21 @@ fun RaceScreen(
                             fontWeight = FontWeight.Bold
                         )
 
-                        val inGreenZone = race.engineRpm in 6400f..7300f
-                        Text(
-                            text = "${race.engineRpm.toInt()} RPM",
-                            color = if (inGreenZone) Color(0xFF76FF03) else Color.White,
-                            fontSize = if (isLandscape) 22.sp else 32.sp,
-                            fontWeight = FontWeight.Black
-                        )
-
                         Spacer(modifier = Modifier.height(6.dp))
 
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(18.dp)
-                                .clip(CircleShape)
-                                .background(Color.Gray.copy(alpha = 0.3f))
-                        ) {
-                            // Current RPM fill
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .fillMaxWidth((race.engineRpm / 9000f).coerceIn(0f, 1f))
-                                    .background(
-                                        if (inGreenZone) Color(0xFF76FF03) else Color(0xFFFF007F)
-                                    )
-                            )
-                        }
+                        CircularTachometer(
+                            engineRpm = race.engineRpm,
+                            modifier = Modifier.size(if (isLandscape) 140.dp else 170.dp)
+                        )
 
                         Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
                             text = "🎯 TARGET: 6,400 - 7,300 RPM (GREEN ZONE)",
                             color = Color(0xFFFFD600),
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.ExtraBold
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }

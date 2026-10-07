@@ -1,9 +1,16 @@
 package com.driftgirls.ui.graphics
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -13,7 +20,9 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.driftgirls.model.Car
 import com.driftgirls.model.GirlCompanion
 import kotlin.math.cos
@@ -468,3 +477,192 @@ fun CarCanvas(
         }
     }
 }
+
+@Composable
+fun CircularTachometer(
+    engineRpm: Float,
+    maxRpm: Float = 9000f,
+    greenZoneMin: Float = 6400f,
+    greenZoneMax: Float = 7300f,
+    modifier: Modifier = Modifier.size(180.dp)
+) {
+    val inGreenZone = engineRpm in greenZoneMin..greenZoneMax
+    val rpmFraction = (engineRpm / maxRpm).coerceIn(0f, 1f)
+
+    val startAngle = 140f
+    val sweepAngle = 260f
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val w = size.width
+            val h = size.height
+            val center = Offset(w / 2f, h / 2f)
+            val strokeWidth = w * 0.08f
+            val radius = (minOf(w, h) - strokeWidth) / 2f
+
+            val arcSize = Size(radius * 2f, radius * 2f)
+            val arcTopLeft = Offset(center.x - radius, center.y - radius)
+
+            // 1. Outer Dark Dial Background
+            drawCircle(
+                color = Color(0xFF12121A),
+                radius = minOf(w, h) / 2f,
+                center = center
+            )
+            drawCircle(
+                color = Color(0xFF00E5FF).copy(alpha = 0.3f),
+                radius = minOf(w, h) / 2f,
+                center = center,
+                style = Stroke(width = 3f)
+            )
+
+            // 2. Base Background Track Arc
+            drawArc(
+                color = Color.White.copy(alpha = 0.15f),
+                startAngle = startAngle,
+                sweepAngle = sweepAngle,
+                useCenter = false,
+                topLeft = arcTopLeft,
+                size = arcSize,
+                style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+            )
+
+            // 3. Green Zone Target Arc (6,400 - 7,300 RPM)
+            val greenStartFrac = greenZoneMin / maxRpm
+            val greenEndFrac = greenZoneMax / maxRpm
+            val greenStartAngle = startAngle + sweepAngle * greenStartFrac
+            val greenSweepAngle = sweepAngle * (greenEndFrac - greenStartFrac)
+
+            drawArc(
+                color = Color(0xFF76FF03), // Bright Neon Green
+                startAngle = greenStartAngle,
+                sweepAngle = greenSweepAngle,
+                useCenter = false,
+                topLeft = arcTopLeft,
+                size = arcSize,
+                style = Stroke(width = strokeWidth + 4f, cap = StrokeCap.Butt)
+            )
+
+            // 4. Redline Track Arc (7,300 - 9,000 RPM)
+            val redlineStartAngle = startAngle + sweepAngle * greenEndFrac
+            val redlineSweepAngle = sweepAngle * (1f - greenEndFrac)
+
+            drawArc(
+                color = Color(0xFFFF0055).copy(alpha = 0.8f),
+                startAngle = redlineStartAngle,
+                sweepAngle = redlineSweepAngle,
+                useCenter = false,
+                topLeft = arcTopLeft,
+                size = arcSize,
+                style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
+            )
+
+            // 6. Tick Marks (0 to 9 x1000 RPM)
+            val numTicks = 9
+            val tickRadiusOuter = radius - strokeWidth / 2f - 2f
+            for (i in 0..numTicks) {
+                val fraction = i / numTicks.toFloat()
+                val angleDeg = startAngle + sweepAngle * fraction
+                val angleRad = angleDeg * (kotlin.math.PI / 180f)
+
+                val tickLength = if (i % 3 == 0) w * 0.08f else w * 0.05f
+                val strokeW = if (i % 3 == 0) 3f else 1.5f
+
+                val isTickInGreen = (fraction * maxRpm) in greenZoneMin..greenZoneMax
+                val tickColor = when {
+                    isTickInGreen -> Color(0xFF76FF03)
+                    fraction * maxRpm > greenZoneMax -> Color(0xFFFF0055)
+                    else -> Color.White.copy(alpha = 0.7f)
+                }
+
+                val startX = center.x + (tickRadiusOuter - tickLength) * cos(angleRad).toFloat()
+                val startY = center.y + (tickRadiusOuter - tickLength) * sin(angleRad).toFloat()
+                val endX = center.x + tickRadiusOuter * cos(angleRad).toFloat()
+                val endY = center.y + tickRadiusOuter * sin(angleRad).toFloat()
+
+                drawLine(
+                    color = tickColor,
+                    start = Offset(startX, startY),
+                    end = Offset(endX, endY),
+                    strokeWidth = strokeW
+                )
+            }
+
+            // 7. Rotating Needle / Pointer
+            val needleAngleDeg = startAngle + sweepAngle * rpmFraction
+            val needleAngleRad = needleAngleDeg * (kotlin.math.PI / 180f)
+            val needleLength = radius - strokeWidth / 2f - 4f
+
+            val needleEndX = center.x + needleLength * cos(needleAngleRad).toFloat()
+            val needleEndY = center.y + needleLength * sin(needleAngleRad).toFloat()
+
+            val needleColor = if (inGreenZone) Color(0xFF76FF03) else Color(0xFFFF3D00)
+
+            // Needle Glow line
+            drawLine(
+                color = needleColor.copy(alpha = 0.4f),
+                start = center,
+                end = Offset(needleEndX, needleEndY),
+                strokeWidth = 8f,
+                cap = StrokeCap.Round
+            )
+            // Main Needle line
+            drawLine(
+                color = needleColor,
+                start = center,
+                end = Offset(needleEndX, needleEndY),
+                strokeWidth = 4f,
+                cap = StrokeCap.Round
+            )
+
+            // Center Hub Cap
+            drawCircle(
+                color = Color.Black,
+                radius = w * 0.08f,
+                center = center
+            )
+            drawCircle(
+                color = needleColor,
+                radius = w * 0.05f,
+                center = center
+            )
+            drawCircle(
+                color = Color.White,
+                radius = w * 0.02f,
+                center = center
+            )
+        }
+
+        // 8. Center Text Overlay
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Spacer(modifier = Modifier.height(18.dp)) // push slightly down below needle pivot
+            Text(
+                text = "${engineRpm.toInt()}",
+                color = if (inGreenZone) Color(0xFF76FF03) else Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Black
+            )
+            Text(
+                text = "RPM",
+                color = Color.White.copy(alpha = 0.6f),
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold
+            )
+            if (inGreenZone) {
+                Text(
+                    text = "PERFECT!",
+                    color = Color(0xFF76FF03),
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Black
+                )
+            }
+        }
+    }
+}
+
