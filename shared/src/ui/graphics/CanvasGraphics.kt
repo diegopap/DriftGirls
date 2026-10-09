@@ -229,8 +229,17 @@ fun CompanionAvatarCanvas(
     }
 }
 
+private data class TrackTheme(
+    val skyColors: List<Color>,
+    val groundColors: List<Color>,
+    val asphaltColor: Color,
+    val dashColor: Color,
+    val curbColor: Color
+)
+
 @Composable
 fun ArcadeTrackCanvas(
+    trackId: String = "track_tutorial",
     cornerProgress: Float,
     isInsideCorner: Boolean,
     cornerDistance: Float,
@@ -244,34 +253,141 @@ fun ArcadeTrackCanvas(
         val w = size.width
         val h = size.height
 
-        // Horizon & Sky
-        val skyGradient = Brush.verticalGradient(
-            colors = listOf(
-                Color(0xFF0F0C20), // Deep Cyber Midnight
-                Color(0xFF241442),
-                Color(0xFF511A65)
-            )
-        )
-        drawRect(skyGradient, topLeft = Offset.Zero, size = Size(w, h * 0.42f))
-
-        // Neon Synthwave Sun in the Sky (above horizon)
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(Color(0xFFFF007F), Color(0xFFFF9100), Color.Transparent)
-            ),
-            radius = w * 0.22f,
-            center = Offset(w * 0.5f, h * 0.25f)
-        )
-
         val roadHorizonY = h * 0.42f
         val roadBottomY = h
 
-        // Cyberpunk Ground / Floor Gradient with Neon Perspective Grid
+        // Theme configuration per track
+        val theme = when (trackId) {
+            "track_tutorial" -> TrackTheme(
+                skyColors = listOf(Color(0xFF0D1B12), Color(0xFF1B2E24), Color(0xFF2C4436)),
+                groundColors = listOf(Color(0xFF152219), Color(0xFF0B140E)),
+                asphaltColor = Color(0xFF222623),
+                dashColor = Color(0xFFEEEEEE),
+                curbColor = Color(0xFFFF1744)
+            )
+            "track_mountain" -> TrackTheme(
+                skyColors = listOf(Color(0xFF2A0818), Color(0xFF4A102A), Color(0xFF7A1D3B)),
+                groundColors = listOf(Color(0xFF210A14), Color(0xFF12050B)),
+                asphaltColor = Color(0xFF211D24),
+                dashColor = Color(0xFFFF6D00),
+                curbColor = Color(0xFFFF1744)
+            )
+            "track_ocean" -> TrackTheme(
+                skyColors = listOf(Color(0xFF220033), Color(0xFF6A1B4D), Color(0xFFD84315), Color(0xFFFF8F00)),
+                groundColors = listOf(Color(0xFF2B1A0E), Color(0xFF120A04)),
+                asphaltColor = Color(0xFF282420),
+                dashColor = Color(0xFFFFD600),
+                curbColor = Color(0xFFFFD600)
+            )
+            "track_endless" -> TrackTheme(
+                skyColors = listOf(Color(0xFF050014), Color(0xFF120036), Color(0xFF2A0054)),
+                groundColors = listOf(Color(0xFF0B001F), Color(0xFF03000A)),
+                asphaltColor = Color(0xFF1A1035),
+                dashColor = Color(0xFF00E5FF),
+                curbColor = Color(0xFFD500F9)
+            )
+            else -> TrackTheme( // "track_neon_city" & default
+                skyColors = listOf(Color(0xFF0F0C20), Color(0xFF241442), Color(0xFF511A65)),
+                groundColors = listOf(Color(0xFF1B0038), Color(0xFF0A0014)),
+                asphaltColor = Color(0xFF181822),
+                dashColor = Color(0xFF00E5FF),
+                curbColor = Color(0xFFFF1744)
+            )
+        }
+
+        // 1. Sky Background
+        val skyGradient = Brush.verticalGradient(colors = theme.skyColors)
+        drawRect(skyGradient, topLeft = Offset.Zero, size = Size(w, roadHorizonY))
+
+        // 2. Custom Background Scenery
+        when (trackId) {
+            "track_tutorial" -> {
+                // Mountain Hill Silhouettes & Silver Moon
+                drawCircle(Color(0xFFE0E6ED), radius = w * 0.08f, center = Offset(w * 0.78f, h * 0.14f))
+                val mountainPath = Path().apply {
+                    moveTo(0f, roadHorizonY)
+                    lineTo(w * 0.15f, roadHorizonY - h * 0.10f)
+                    lineTo(w * 0.35f, roadHorizonY - h * 0.05f)
+                    lineTo(w * 0.55f, roadHorizonY - h * 0.14f)
+                    lineTo(w * 0.8f, roadHorizonY - h * 0.07f)
+                    lineTo(w, roadHorizonY - h * 0.12f)
+                    lineTo(w, roadHorizonY)
+                    close()
+                }
+                drawPath(mountainPath, Color(0xFF09140C))
+            }
+            "track_mountain" -> {
+                // Mount Fuji Peak & Crimson Blood Moon
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(Color(0xFFFF1744), Color(0xFFFF80AB), Color.Transparent)
+                    ),
+                    radius = w * 0.15f,
+                    center = Offset(w * 0.3f, h * 0.18f)
+                )
+                val fujiPath = Path().apply {
+                    moveTo(w * 0.35f, roadHorizonY)
+                    lineTo(w * 0.65f, roadHorizonY - h * 0.28f)
+                    lineTo(w * 0.95f, roadHorizonY)
+                    close()
+                }
+                drawPath(fujiPath, Color(0xFF16050E))
+                val snowCap = Path().apply {
+                    moveTo(w * 0.60f, roadHorizonY - h * 0.23f)
+                    lineTo(w * 0.65f, roadHorizonY - h * 0.28f)
+                    lineTo(w * 0.70f, roadHorizonY - h * 0.23f)
+                    lineTo(w * 0.65f, roadHorizonY - h * 0.20f)
+                    close()
+                }
+                drawPath(snowCap, Color(0xFFFFD1DC))
+            }
+            "track_ocean" -> {
+                // Sunset Sun & Ocean Reflection
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(Color(0xFFFFD600), Color(0xFFFF3D00), Color.Transparent)
+                    ),
+                    radius = w * 0.22f,
+                    center = Offset(w * 0.5f, h * 0.38f)
+                )
+                drawRect(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color(0xFFFF8F00).copy(alpha = 0.5f), Color(0xFF003366))
+                    ),
+                    topLeft = Offset(0f, roadHorizonY - h * 0.08f),
+                    size = Size(w, h * 0.08f)
+                )
+            }
+            "track_endless" -> {
+                // Celestial Orb
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(Color(0xFFD500F9), Color(0xFF00E5FF), Color.Transparent)
+                    ),
+                    radius = w * 0.20f,
+                    center = Offset(w * 0.5f, h * 0.22f)
+                )
+            }
+            else -> { // "track_neon_city"
+                // Synthwave Sun & Skyscraper Skyline
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(Color(0xFFFF007F), Color(0xFFFF9100), Color.Transparent)
+                    ),
+                    radius = w * 0.22f,
+                    center = Offset(w * 0.5f, h * 0.25f)
+                )
+                val cityColor = Color(0xFF0D061A)
+                drawRect(cityColor, Offset(w * 0.05f, roadHorizonY - h * 0.16f), Size(w * 0.12f, h * 0.16f))
+                drawRect(cityColor, Offset(w * 0.20f, roadHorizonY - h * 0.22f), Size(w * 0.15f, h * 0.22f))
+                drawRect(cityColor, Offset(w * 0.65f, roadHorizonY - h * 0.18f), Size(w * 0.14f, h * 0.18f))
+                drawRect(cityColor, Offset(w * 0.82f, roadHorizonY - h * 0.24f), Size(w * 0.13f, h * 0.24f))
+            }
+        }
+
+        // 3. Ground / Floor Gradient
         val groundGradient = Brush.verticalGradient(
-            colors = listOf(
-                Color(0xFF1B0038), // Dark purple near horizon
-                Color(0xFF0A0014)  // Darker near bottom
-            ),
+            colors = theme.groundColors,
             startY = roadHorizonY,
             endY = roadBottomY
         )
@@ -284,9 +400,6 @@ fun ArcadeTrackCanvas(
         val dirMult = if (cornerDirection == com.driftgirls.model.CornerDirection.LEFT) -1f else 1f
         val maxBend = w * 0.45f
 
-        // Multi-Section Curve Calculation:
-        // ONLY the upper part of the track near the horizon (v < 0.40) curves to show the turn!
-        // The middle and bottom parts of the track (v >= 0.40) remain 100% FIXED and CENTERED (xOffset = 0)!
         val numSlices = 28
         val slicePointsLeft = ArrayList<Offset>(numSlices + 1)
         val slicePointsRight = ArrayList<Offset>(numSlices + 1)
@@ -294,17 +407,15 @@ fun ArcadeTrackCanvas(
         val approachFactor = ((150f - cornerDistance) / 150f).coerceIn(0f, 1f)
 
         for (i in 0..numSlices) {
-            val v = i / numSlices.toFloat() // 0.0 at horizon, 1.0 at car
+            val v = i / numSlices.toFloat()
             val y = roadHorizonY + (roadBottomY - roadHorizonY) * v
             val sliceWidth = roadTopWidth + (roadBottomWidth - roadTopWidth) * v
 
             val xOffset = if (v < 0.40f) {
-                val upperFactor = 1f - (v / 0.40f) // 1.0 at horizon (v=0), 0.0 at v=0.40
+                val upperFactor = 1f - (v / 0.40f)
                 val bendAmount = upperFactor * upperFactor * (maxBend * 0.85f)
 
                 if (isInsideCorner) {
-                    // turnIntensity starts at 1.0 at entry (100% matching approach offset),
-                    // then smoothly decays to 0.0 at exit, returning the horizon to center without any jumps!
                     val turnIntensity = cos(cornerProgress * kotlin.math.PI.toFloat() / 2f)
                     dirMult * bendAmount * turnIntensity
                 } else if (cornerDistance < 150f) {
@@ -313,7 +424,7 @@ fun ArcadeTrackCanvas(
                     0f
                 }
             } else {
-                0f // Middle & bottom of track stay 100% fixed & straight!
+                0f
             }
 
             val centerX = (w / 2f) + xOffset
@@ -336,10 +447,10 @@ fun ArcadeTrackCanvas(
         }
 
         // Road Asphalt Color
-        drawPath(roadPath, Color(0xFF1D1E22))
+        drawPath(roadPath, theme.asphaltColor)
 
         // Render Glowing Neon Drift Zone on the road surface synchronized with the CAR (v = 0.70)
-        val carV = 0.70f // The position of the car on the perspective track
+        val carV = 0.70f
         val isYellowZoneActive = isInsideCorner || cornerDistance < 180f
         if (isYellowZoneActive) {
             val entryV = if (isInsideCorner) 1.0f else (((180f - cornerDistance) / 180f).coerceIn(0f, 1f) * carV)
@@ -369,12 +480,10 @@ fun ArcadeTrackCanvas(
                 }
                 zonePath.close()
 
-                // Draw Glowing Neon Road Overlay (Vibrant Neon Red for entire section of last drift, Yellow otherwise)
                 val zoneColor = if (isLastDrift) Color(0xFFFF1744) else Color(0xFFFFD600)
                 val zoneAlpha = if (isLastDrift) 0.85f else 0.65f
 
                 drawPath(zonePath, zoneColor.copy(alpha = zoneAlpha))
-                // Draw vibrant stroke outline so the last drift red zone pops brightly against asphalt
                 drawPath(
                     path = zonePath,
                     color = if (isLastDrift) Color(0xFFFF1744) else Color.White.copy(alpha = 0.5f),
@@ -414,8 +523,8 @@ fun ArcadeTrackCanvas(
             close()
         }
 
-        drawPath(leftCurbPath, Color(0xFFFF1744)) // Red Curb
-        drawPath(rightCurbPath, Color(0xFFFF1744))
+        drawPath(leftCurbPath, theme.curbColor)
+        drawPath(rightCurbPath, theme.curbColor)
 
         // Center Animated Dash Lines (Scrolling smoothly with distanceTravelled)
         val dashStep = 0.15f
@@ -442,7 +551,7 @@ fun ArcadeTrackCanvas(
                 val lineHeight = 8f + (vDash * 30f)
 
                 drawRoundRect(
-                    color = Color(0xFFFFD600), // Neon Yellow
+                    color = theme.dashColor,
                     topLeft = Offset(centerX - (lineWidth / 2f), y),
                     size = Size(lineWidth, lineHeight),
                     cornerRadius = CornerRadius(4f, 4f)

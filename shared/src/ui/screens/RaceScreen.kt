@@ -86,6 +86,7 @@ fun RaceScreen(
         // 1. Arcade Track Canvas View
         val isLastDrift = race.isLastCorner
         ArcadeTrackCanvas(
+            trackId = race.track.id,
             cornerProgress = race.cornerProgress,
             isInsideCorner = race.isInsideCorner,
             cornerDistance = race.nextCornerDistance,
