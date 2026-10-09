@@ -193,8 +193,13 @@ fun TrackSelectScreen(
                         Spacer(modifier = Modifier.height(14.dp))
 
                         if (!isUnlocked) {
+                            val lockMessage = if (track.id == "track_endless") {
+                                "🔒 Race locked! You need to have 100% affection with all the girls to unlock this!"
+                            } else {
+                                "🔒 Race locked! You need to discover the girl from the previous race to unlock!"
+                            }
                             Text(
-                                text = "🔒 Race locked! You need to discover the girl from the previous race to unlock!",
+                                text = lockMessage,
                                 color = Color(0xFFFF5252),
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
