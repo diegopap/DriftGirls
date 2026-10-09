@@ -15,5 +15,13 @@ actual fun loadGameData(): String? = null
 
 actual fun getFormattedCurrentDate(): String = "2026-03-30 12:00"
 
+actual fun playBackgroundMusic(musicTrack: String) {}
+
+actual fun stopBackgroundMusic() {}
+
+actual fun setMusicMuted(muted: Boolean) {}
+
+actual fun isMusicMuted(): Boolean = false
+
 @Composable
 actual fun PlatformBackHandler(enabled: Boolean, onBack: () -> Unit) {}

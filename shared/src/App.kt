@@ -29,6 +29,16 @@ fun App() {
     val backStack = remember { mutableStateListOf(Screen.HOME) }
     val currentScreen = backStack.lastOrNull() ?: Screen.HOME
 
+    val currentTrackId = gameEngine.activeRaceState?.track?.id
+    LaunchedEffect(currentScreen, currentTrackId) {
+        if (currentScreen == Screen.RACE) {
+            val trackMusic = "race_" + (currentTrackId ?: "track_tutorial")
+            playBackgroundMusic(trackMusic)
+        } else {
+            playBackgroundMusic("menu")
+        }
+    }
+
     PlatformBackHandler(enabled = backStack.size > 1) {
         if (backStack.size > 1) {
             backStack.removeAt(backStack.size - 1)

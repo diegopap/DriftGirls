@@ -28,6 +28,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -155,6 +156,23 @@ fun RaceScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
+                var isMutedState by remember { mutableStateOf(com.driftgirls.isMusicMuted()) }
+                Surface(
+                    onClick = {
+                        val nextMuted = !isMutedState
+                        com.driftgirls.setMusicMuted(nextMuted)
+                        isMutedState = nextMuted
+                    },
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color.White.copy(alpha = 0.2f)
+                ) {
+                    Text(
+                        text = if (isMutedState) "🔇" else "🎵",
+                        fontSize = 11.sp,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(6.dp))
                 Button(
                     onClick = onBackToHome,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),

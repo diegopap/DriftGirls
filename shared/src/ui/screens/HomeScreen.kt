@@ -8,7 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -67,6 +67,23 @@ fun HomeScreen(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
+                var isMutedState by remember { mutableStateOf(com.driftgirls.isMusicMuted()) }
+                Surface(
+                    onClick = {
+                        val nextMuted = !isMutedState
+                        com.driftgirls.setMusicMuted(nextMuted)
+                        isMutedState = nextMuted
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFF25133B)
+                ) {
+                    Text(
+                        text = if (isMutedState) "🔇" else "🎵",
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = Color(0xFF25133B)
