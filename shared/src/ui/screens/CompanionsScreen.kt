@@ -22,7 +22,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.driftgirls.engine.GameDataDefaults
 import com.driftgirls.engine.GameEngine
+import com.driftgirls.i18n.*
+import com.driftgirls.resources.*
 import com.driftgirls.ui.graphics.CompanionAvatarCanvas
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CompanionsScreen(
@@ -46,6 +49,8 @@ fun CompanionsScreen(
     val isEquipped = activeCompanion.id == selectedCompanionId
     var reactionMessage by remember { mutableStateOf<String?>(null) }
     var selectedTab by remember { mutableStateOf(0) } // 0 = Dates, 1 = Gifts
+
+    val dateSuccessMsg = stringResource(Res.string.date_success_msg)
 
     val trackGirlRequirements = mapOf(
         "aoi" to "Akina Training Pass (Tutorial)",
@@ -80,7 +85,7 @@ fun CompanionsScreen(
             }
 
             Text(
-                text = "COMPANIONS & DATING",
+                text = stringResource(Res.string.companions_title),
                 color = Color.White,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Black
@@ -111,7 +116,7 @@ fun CompanionsScreen(
                     Text("🔒", fontSize = 24.sp)
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "No companions discovered yet! Win races with 3 STARS for a 50% chance to discover girls!",
+                        text = stringResource(Res.string.no_companions_banner),
                         color = Color.White,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
@@ -160,7 +165,7 @@ fun CompanionsScreen(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = if (isDiscovered) "Affection: $aff%" else "Locked",
+                            text = if (isDiscovered) stringResource(Res.string.affection_format, aff) else stringResource(Res.string.locked),
                             color = if (isDiscovered) Color(0xFFFF80AB) else Color.Gray.copy(alpha = 0.6f),
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold
@@ -192,14 +197,14 @@ fun CompanionsScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = if (isPreviewDiscovered) activeCompanion.name else "🔒 ${activeCompanion.name} (LOCKED)",
+                    text = if (isPreviewDiscovered) activeCompanion.name else "🔒 ${activeCompanion.name} (${stringResource(Res.string.locked).uppercase()})",
                     color = Color.White,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Black
                 )
 
                 Text(
-                    text = activeCompanion.title,
+                    text = activeCompanion.localizedTitle(),
                     color = Color(activeCompanion.accentColorHex),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
@@ -209,7 +214,7 @@ fun CompanionsScreen(
 
                 if (isPreviewDiscovered) {
                     Text(
-                        text = activeCompanion.bio,
+                        text = activeCompanion.localizedBio(),
                         color = Color.White.copy(alpha = 0.7f),
                         fontSize = 12.sp,
                         modifier = Modifier.padding(horizontal = 8.dp)
@@ -223,7 +228,7 @@ fun CompanionsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "💕 AFFECTION (${activeCompanion.affection}%)",
+                            text = "💕 ${stringResource(Res.string.affection_label)} (${activeCompanion.affection}%)",
                             color = Color(0xFFFF4081),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Black
@@ -250,7 +255,11 @@ fun CompanionsScreen(
                             .padding(10.dp)
                     ) {
                         Text(
-                            text = "🏎️ RACE PERK: ${activeCompanion.bonusType.description} (+${activeCompanion.effectiveBonusValue().toInt()}%)",
+                            text = stringResource(
+                                Res.string.race_perk_format,
+                                activeCompanion.bonusType.localizedDescription(),
+                                activeCompanion.effectiveBonusValue().toInt()
+                            ),
                             color = Color(0xFFFFD600),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
@@ -288,7 +297,7 @@ fun CompanionsScreen(
                         )
                     ) {
                         Text(
-                            text = if (isEquipped) "EQUIPPED PARTNER ✓" else "EQUIP AS RACING PARTNER",
+                            text = if (isEquipped) stringResource(Res.string.equipped_partner) else stringResource(Res.string.equip_partner),
                             color = if (isEquipped) Color.Black else Color.White,
                             fontWeight = FontWeight.Black
                         )
@@ -303,7 +312,7 @@ fun CompanionsScreen(
                             .padding(12.dp)
                     ) {
                         Text(
-                            text = "🔒 HOW TO UNLOCK:\nPass $reqTrack with 3 STARS for a 50% chance to discover ${activeCompanion.name}!",
+                            text = stringResource(Res.string.how_to_unlock_format, reqTrack, activeCompanion.name),
                             color = Color(0xFFFFD600),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
@@ -325,7 +334,7 @@ fun CompanionsScreen(
                         containerColor = if (selectedTab == 0) Color(0xFFFF007F) else Color(0xFF28113D)
                     )
                 ) {
-                    Text("DATES 🌹", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(stringResource(Res.string.tab_dates), color = Color.White, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
@@ -335,7 +344,7 @@ fun CompanionsScreen(
                         containerColor = if (selectedTab == 1) Color(0xFFFF007F) else Color(0xFF28113D)
                     )
                 ) {
-                    Text("GIFTS 🎁", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(stringResource(Res.string.tab_gifts), color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -358,18 +367,18 @@ fun CompanionsScreen(
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = dateActivity.title,
+                                        text = dateActivity.localizedTitle(),
                                         color = Color.White,
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
-                                        text = "${dateActivity.location} • ${dateActivity.description}",
+                                        text = "${dateActivity.localizedLocation()} • ${dateActivity.localizedDescription()}",
                                         color = Color.White.copy(alpha = 0.6f),
                                         fontSize = 11.sp
                                     )
                                     Text(
-                                        text = "+${dateActivity.affectionGain}% Affection Gain",
+                                        text = stringResource(Res.string.affection_gain_format, dateActivity.affectionGain),
                                         color = Color(0xFFFF80AB),
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold
@@ -382,7 +391,7 @@ fun CompanionsScreen(
                                     onClick = {
                                         val success = gameEngine.goOnDate(activeCompanion.id, dateActivity)
                                         if (success) {
-                                            reactionMessage = "I had the most magical time with you on our date! 💕"
+                                            reactionMessage = dateSuccessMsg
                                         }
                                     },
                                     enabled = gameEngine.saveData.gems >= dateActivity.costGems,
@@ -402,6 +411,8 @@ fun CompanionsScreen(
                 // Gifts List
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     gifts.forEach { giftItem ->
+                        val giftName = giftItem.localizedName()
+                        val giftSuccessFmt = stringResource(Res.string.gift_success_format, giftName)
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
@@ -418,13 +429,13 @@ fun CompanionsScreen(
 
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = giftItem.name,
+                                        text = giftName,
                                         color = Color.White,
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
-                                        text = "+${giftItem.affectionGain}% Affection Gain",
+                                        text = stringResource(Res.string.affection_gain_format, giftItem.affectionGain),
                                         color = Color(0xFFFF80AB),
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold
@@ -435,7 +446,7 @@ fun CompanionsScreen(
                                     onClick = {
                                         val success = gameEngine.giveGift(activeCompanion.id, giftItem)
                                         if (success) {
-                                            reactionMessage = "Kyaa~! Thank you so much for the ${giftItem.name}! You're amazing!"
+                                            reactionMessage = giftSuccessFmt
                                         }
                                     },
                                     enabled = gameEngine.saveData.gems >= giftItem.costGems,

@@ -15,6 +15,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.driftgirls.engine.GameEngine
+import com.driftgirls.i18n.*
+import com.driftgirls.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun TrackSelectScreen(
@@ -55,7 +58,7 @@ fun TrackSelectScreen(
             }
 
             Text(
-                text = "CAREER TRACKS",
+                text = stringResource(Res.string.tracks_title),
                 color = Color.White,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Black
@@ -114,13 +117,13 @@ fun TrackSelectScreen(
                                                 .background(Color(0xFFFFD600), RoundedCornerShape(6.dp))
                                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                                         ) {
-                                            Text("TUTORIAL", color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                            Text(stringResource(Res.string.tutorial_tag), color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                                         }
                                     }
                                 }
 
                                 Text(
-                                    text = "${track.location} • Difficulty: ${track.difficulty}",
+                                    text = "${track.localizedLocation()} • ${stringResource(Res.string.difficulty_format, track.localizedDifficulty())}",
                                     color = Color.White.copy(alpha = 0.6f),
                                     fontSize = 12.sp
                                 )
@@ -135,7 +138,7 @@ fun TrackSelectScreen(
                                     .padding(horizontal = 8.dp, vertical = 4.dp)
                             ) {
                                 Text(
-                                    text = if (isUnlocked) "UNLOCKED" else "LOCKED 🔒",
+                                    text = if (isUnlocked) stringResource(Res.string.unlocked) else "${stringResource(Res.string.locked).uppercase()} 🔒",
                                     color = if (isUnlocked) Color.Black else Color.White.copy(alpha = 0.6f),
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Black
@@ -158,9 +161,9 @@ fun TrackSelectScreen(
                             ) {
                                 Text(
                                     text = if (isGirlDiscovered) {
-                                        "💕 COMPANION DISCOVERED: $girlName ✓"
+                                        stringResource(Res.string.companion_discovered_format, girlName)
                                     } else {
-                                        "🔒 DISCOVER GIRL: $girlName (3 Stars = 50% Chance)"
+                                        stringResource(Res.string.discover_girl_format, girlName)
                                     },
                                     color = if (isGirlDiscovered) Color(0xFFFF80AB) else Color(0xFFFFD600),
                                     fontSize = 11.sp,
@@ -175,15 +178,15 @@ fun TrackSelectScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Distance: ${track.distanceMeters}m", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
-                            Text("Hairpins: ${track.cornersCount} Corners", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
+                            Text(stringResource(Res.string.distance_format, track.distanceMeters), color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
+                            Text(stringResource(Res.string.hairpins_format, track.cornersCount), color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
 
                         // Rewards
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("REWARDS:", color = Color.Gray, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.rewards_label), color = Color.Gray, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("+$${track.rewardCash}", color = Color(0xFF76FF03), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.width(12.dp))
@@ -194,9 +197,9 @@ fun TrackSelectScreen(
 
                         if (!isUnlocked) {
                             val lockMessage = if (track.id == "track_endless") {
-                                "🔒 Race locked! You need to have 100% affection with all the girls to unlock this!"
+                                stringResource(Res.string.lock_msg_endless)
                             } else {
-                                "🔒 Race locked! You need to discover the girl from the previous race to unlock!"
+                                stringResource(Res.string.lock_msg_standard)
                             }
                             Text(
                                 text = lockMessage,
@@ -221,7 +224,7 @@ fun TrackSelectScreen(
                             )
                         ) {
                             Text(
-                                text = if (isUnlocked) "ENTER RACE 🏁" else "LOCKED",
+                                text = if (isUnlocked) stringResource(Res.string.enter_race) else stringResource(Res.string.locked).uppercase(),
                                 color = if (isUnlocked) Color.Black else Color.White.copy(alpha = 0.4f),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Black

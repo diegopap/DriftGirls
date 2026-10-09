@@ -1,0 +1,111 @@
+<resources>
+    <string name="app_title">DRIFT GIRLS</string>
+    <string name="app_subtitle">ALTOS DERRAPES Y CITAS</string>
+    <string name="game_completed_title">👑 ¡JUEGO COMPLETADO - EL REY DEL DRIFT! 👑</string>
+    <string name="game_completed_desc">¡La pista Pase Drift Infinito (Modo 60s) está DESBLOQUEADA!</string>
+    <string name="speech_partner_ready">💬 "¡Hola piloto! ¿Listo para romper nuevos récords de derrape hoy?"</string>
+    <string name="speech_no_partner">💬 "¡Sin acompañante seleccionada! ¡Gana carreras con 3 estrellas para un 50% de probabilidad de descubrir chicas!"</string>
+    <string name="no_partner">Sin Compañera</string>
+    <string name="affection_format">Afecto: %1$d%</string>
+    <string name="locked">Bloqueada</string>
+    <string name="enter_race_career">CARRERA PROFESIONAL 🏁</string>
+    <string name="game_menu">MENÚ PRINCIPAL</string>
+    <string name="menu_garage">GARAJE</string>
+    <string name="menu_garage_sub">Tuning</string>
+    <string name="menu_girls">CHICAS</string>
+    <string name="menu_girls_sub">Citas</string>
+    <string name="menu_tracks">PISTAS</string>
+    <string name="menu_tracks_sub">Carrera</string>
+    <string name="menu_scores">TABLA</string>
+    <string name="menu_scores_sub">Posiciones</string>
+    <string name="reset_progress">🔄 REINICIAR PROGRESO DEL JUEGO (NUEVO COMIENZO)</string>
+
+    <string name="garage_title">GARAJE Y TUNING</string>
+    <string name="owned">PROPIEDAD</string>
+    <string name="no_partner_buff">Sin Mejora de Compañera</string>
+    <string name="partner_buff_format">Mejora de %1$s: +%2$d%</string>
+    <string name="stat_top_speed">VELOCIDAD MÁXIMA</string>
+    <string name="stat_drift_control">CONTROL DE DERRAPE</string>
+    <string name="stat_nitro_capacity">CAPACIDAD DE NITRO</string>
+    <string name="max_level">MÁX</string>
+    <string name="level_format">NIV. %1$d</string>
+    <string name="upgrade_cost_format">+MEJORAR ($%1$d)</string>
+    <string name="custom_paint">COLOR DE PINTURA PERSONALIZADO</string>
+    <string name="drive_now">¡¡CONDUCIR AHORA!! 🏎️</string>
+    <string name="select_car">SELECCIONAR COCHE</string>
+    <string name="buy_car_format">COMPRAR COCHE ($%1$d)</string>
+
+    <string name="companions_title">ACOMPAÑANTES Y CITAS</string>
+    <string name="no_companions_banner">🔒 ¡Aún no se han descubierto acompañantes! ¡Gana carreras con 3 ESTRELLAS para un 50% de probabilidad de descubrir chicas!</string>
+    <string name="race_perk_format">🏎️ VENTAJA DE CARRERA: %1$s (+%2$d%)</string>
+    <string name="equipped_partner">COMPAÑERA EQUIPADA ✓</string>
+    <string name="equip_partner">EQUIPAR COMO COMPAÑERA</string>
+    <string name="how_to_unlock_format">🔒 CÓMO DESBLOQUEAR:\n¡Supera %1$s con 3 ESTRELLAS para un 50% de probabilidad de descubrir a %2$s!</string>
+    <string name="tab_dates">CITAS 🌹</string>
+    <string name="tab_gifts">REGALOS 🎁</string>
+    <string name="affection_gain_format">+%1$d% de Aumento de Afecto</string>
+    <string name="date_success_msg">¡Pasé un momento mágico contigo en nuestra cita! 💕</string>
+    <string name="gift_success_format">¡Kyaa~! ¡Muchas gracias por %1$s! ¡Eres increíble!</string>
+
+    <string name="tracks_title">PISTAS DE CARRERA</string>
+    <string name="tutorial_tag">TUTORIAL</string>
+    <string name="difficulty_format">Dificultad: %1$s</string>
+    <string name="unlocked">DESBLOQUEADO</string>
+    <string name="companion_discovered_format">💕 ACOMPAÑANTE DESCUBIERTA: %1$s ✓</string>
+    <string name="discover_girl_format">🔒 DESCUBRE A: %1$s (3 Estrellas = 50% Probabilidad)</string>
+    <string name="distance_format">Distancia: %1$dm</string>
+    <string name="hairpins_format">Curvas: %1$d Curvas</string>
+    <string name="rewards_label">RECOMPENSAS:</string>
+    <string name="lock_msg_endless">🔒 ¡Carrera bloqueada! ¡Necesitas tener 100%% de afecto con todas las chicas para desbloquearla!</string>
+    <string name="lock_msg_standard">🔒 ¡Carrera bloqueada! ¡Necesitas descubrir a la chica de la carrera anterior para desbloquearla!</string>
+    <string name="enter_race">ENTRAR A LA CARRERA 🏁</string>
+
+    <string name="leaderboard_title">TABLA DE CLASIFICACIÓN 🏆</string>
+    <string name="leaderboard_subtitle">📊 CLASIFICADO POR MAYOR PUNTUACIÓN Y FECHA RECIENTE</string>
+    <string name="no_high_scores">¡AÚN NO HAY ALTAS PUNTUACIONES!</string>
+    <string name="no_high_scores_desc">¡Completa carreras en las Pistas de Carrera o Pase Drift Infinito para registrar tus puntuaciones!</string>
+    <string name="partner_format">Compañera: %1$s</string>
+
+    <string name="exit">SALIR</string>
+    <string name="speed_unit"> KM/H</string>
+    <string name="combo_format">🔥 ¡COMBO %1$dx!</string>
+    <string name="drift_score_label">PUNTOS DRIFT</string>
+    <string name="nitro_label">NITRO</string>
+    <string name="time_remaining_format">⏱️ TIEMPO RESTANTE: %1$d.%2$ds</string>
+    <string name="engine_tachometer">TAQUÍMETRO DEL MOTOR</string>
+    <string name="tachometer_target">🎯 OBJETIVO: 6,400 - 7,300 RPM (ZONA VERDE)</string>
+    <string name="btn_nitro">⚡ NITRO</string>
+    <string name="btn_drift_left">◄ DRIFT</string>
+    <string name="btn_drift_right">DRIFT ►</string>
+    <string name="btn_gas">ACELERAR</string>
+    <string name="tutorial_title">TUTORIAL DE CARRERA</string>
+    <string name="tutorial_body">1. Durante la cuenta regresiva de 5s, mantén presionado ACELERAR 🏎️ para mantener las RPM en la ZONA VERDE (6,400 - 7,300 RPM) para una ¡SALIDA PERFECTA!\n\n2. Mantén presionado ◄ DRIFT o DRIFT ► en las curvas para lograr derrapes de alta puntuación.\n\n3. ¡Obtén 3 ESTRELLAS (5000+ Puntos) para un 50% de probabilidad de DESCUBRIR A LA CHICA DE LA PISTA y desbloquear la siguiente carrera!\n\n4. Presiona ⚡ NITRO para alcanzar la máxima velocidad.</string>
+    <string name="lets_race">¡¡A CORRER!!</string>
+    <string name="race_finished">¡¡CARRERA FINALIZADA!!</string>
+    <string name="new_girl_discovered">🎉 ¡¡NUEVA CHICA DESCUBIERTA!! 🎉</string>
+    <string name="new_girl_unlocked">¡Ahora está desbloqueada y la siguiente carrera está DESBLOQUEADA!</string>
+    <string name="missed_discovery_3stars">🎲 ¡3 Estrellas Obtenidas! (50% de Probabilidad no alcanzado - ¡Compite de nuevo para descubrirla y desbloquear la siguiente pista!)</string>
+    <string name="missed_discovery_needstars">🔒 ¡Necesitas 3 Estrellas (5000+ Puntos Drift) para un 50% de probabilidad de descubrir a la chica y desbloquear la siguiente carrera!</string>
+    <string name="cash_label">DINERO</string>
+    <string name="gems_label">GEMAS</string>
+    <string name="affection_label">AFECTO</string>
+    <string name="next_race">SIGUIENTE CARRERA 🏁</string>
+    <string name="continue_btn">CONTINUAR</string>
+    <string name="retry_race">REINTENTAR CARRERA 🔄</string>
+
+    <string name="settings_title">CONFIGURACIÓN Y PREFERENCIAS</string>
+    <string name="settings_language">IDIOMA</string>
+    <string name="settings_language_system">📱 Por defecto del sistema</string>
+    <string name="settings_language_es">🇪🇸 Español</string>
+    <string name="settings_language_en">🇬🇧 Inglés</string>
+
+    <string name="settings_audio">AUDIO Y MÚSICA</string>
+    <string name="settings_music_volume">Volumen de Música</string>
+    <string name="settings_music_muted">Música Silenciada</string>
+    <string name="settings_music_enabled">Música Activada</string>
+
+    <string name="settings_theme">TEMA VISUAL</string>
+    <string name="settings_theme_system">📱 Por defecto del sistema</string>
+    <string name="settings_theme_dark">🌙 Modo Oscuro</string>
+    <string name="settings_theme_light">☀️ Modo Claro</string>
+</resources>

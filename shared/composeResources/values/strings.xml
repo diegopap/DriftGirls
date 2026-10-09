@@ -1,0 +1,111 @@
+<resources>
+    <string name="app_title">DRIFT GIRLS</string>
+    <string name="app_subtitle">HIGH OCTANE DRIFT &amp; DATING</string>
+    <string name="game_completed_title">👑 GAME COMPLETED - ULTIMATE DRIFT KING! 👑</string>
+    <string name="game_completed_desc">Infinity Drift Pass (Endless 60s) Track is now UNLOCKED!</string>
+    <string name="speech_partner_ready">💬 "Hey driver! Ready to set some new drift records today?"</string>
+    <string name="speech_no_partner">💬 "No companion selected yet! Win races with 3 stars for a 50% chance to discover girls!"</string>
+    <string name="no_partner">No Partner</string>
+    <string name="affection_format">Affection: %1$d%</string>
+    <string name="locked">Locked</string>
+    <string name="enter_race_career">ENTER RACE CAREER 🏁</string>
+    <string name="game_menu">GAME MENU</string>
+    <string name="menu_garage">GARAGE</string>
+    <string name="menu_garage_sub">Tuning</string>
+    <string name="menu_girls">GIRLS</string>
+    <string name="menu_girls_sub">Dates</string>
+    <string name="menu_tracks">TRACKS</string>
+    <string name="menu_tracks_sub">Career</string>
+    <string name="menu_scores">SCORES</string>
+    <string name="menu_scores_sub">Leaderboard</string>
+    <string name="reset_progress">🔄 RESET GAME PROGRESS (FRESH START)</string>
+
+    <string name="garage_title">GARAGE &amp; TUNING</string>
+    <string name="owned">OWNED</string>
+    <string name="no_partner_buff">No Partner Buff</string>
+    <string name="partner_buff_format">%1$s Buff: +%2$d%</string>
+    <string name="stat_top_speed">TOP SPEED</string>
+    <string name="stat_drift_control">DRIFT CONTROL</string>
+    <string name="stat_nitro_capacity">NITRO CAPACITY</string>
+    <string name="max_level">MAX</string>
+    <string name="level_format">LV. %1$d</string>
+    <string name="upgrade_cost_format">+UPGRADE ($%1$d)</string>
+    <string name="custom_paint">CUSTOM PAINT COLOR</string>
+    <string name="drive_now">DRIVE NOW!! 🏎️</string>
+    <string name="select_car">SELECT CAR</string>
+    <string name="buy_car_format">BUY CAR ($%1$d)</string>
+
+    <string name="companions_title">COMPANIONS &amp; DATING</string>
+    <string name="no_companions_banner">🔒 No companions discovered yet! Win races with 3 STARS for a 50% chance to discover girls!</string>
+    <string name="race_perk_format">RACE PERK: %1$s (+%2$d%)</string>
+    <string name="equipped_partner">EQUIPPED PARTNER ✓</string>
+    <string name="equip_partner">EQUIP AS RACING PARTNER</string>
+    <string name="how_to_unlock_format">🔒 HOW TO UNLOCK:\nPass %1$s with 3 STARS for a 50% chance to discover %2$s!</string>
+    <string name="tab_dates">DATES 🌹</string>
+    <string name="tab_gifts">GIFTS 🎁</string>
+    <string name="affection_gain_format">+%1$d% Affection Gain</string>
+    <string name="date_success_msg">I had the most magical time with you on our date! 💕</string>
+    <string name="gift_success_format">Kyaa~! Thank you so much for the %1$s! You\'re amazing!</string>
+
+    <string name="tracks_title">CAREER TRACKS</string>
+    <string name="tutorial_tag">TUTORIAL</string>
+    <string name="difficulty_format">Difficulty: %1$s</string>
+    <string name="unlocked">UNLOCKED</string>
+    <string name="companion_discovered_format">COMPANION DISCOVERED: %1$s ✓</string>
+    <string name="discover_girl_format">DISCOVER GIRL: %1$s (3 Stars = 50% Chance)</string>
+    <string name="distance_format">Distance: %1$dm</string>
+    <string name="hairpins_format">Hairpins: %1$d Corners</string>
+    <string name="rewards_label">REWARDS:</string>
+    <string name="lock_msg_endless">🔒 Race locked! You need to have 100%% affection with all the girls to unlock this!</string>
+    <string name="lock_msg_standard">🔒 Race locked! You need to discover the girl from the previous race to unlock!</string>
+    <string name="enter_race">ENTER RACE 🏁</string>
+
+    <string name="leaderboard_title">DRIFT LEADERBOARD 🏆</string>
+    <string name="leaderboard_subtitle">📊 RANKED BY HIGHEST DRIFT SCORE &amp; RECENT DATE</string>
+    <string name="no_high_scores">NO HIGH SCORES YET!</string>
+    <string name="no_high_scores_desc">Complete races on Career Tracks or Infinity Drift Pass to record your scores!</string>
+    <string name="partner_format">Partner: %1$s</string>
+
+    <string name="exit">EXIT</string>
+    <string name="speed_unit"> KM/H</string>
+    <string name="combo_format">%1$dx COMBO!</string>
+    <string name="drift_score_label">DRIFT SCORE</string>
+    <string name="nitro_label">NITRO</string>
+    <string name="time_remaining_format">TIME REMAINING: %1$d.%2$ds</string>
+    <string name="engine_tachometer">ENGINE TACHOMETER</string>
+    <string name="tachometer_target">🎯 TARGET: 6,400 - 7,300 RPM (GREEN ZONE)</string>
+    <string name="btn_nitro">⚡ NITRO</string>
+    <string name="btn_drift_left">◄ DRIFT</string>
+    <string name="btn_drift_right">DRIFT ►</string>
+    <string name="btn_gas">GAS</string>
+    <string name="tutorial_title">RACE TUTORIAL</string>
+    <string name="tutorial_body">1. During 5s countdown, hold GAS 🏎️ to keep RPM in the GREEN ZONE (6,400 - 7,300 RPM) for a PERFECT LAUNCH!\n\n2. Tap &amp; hold ◄ DRIFT or DRIFT ► in corners for high-score drifts!\n\n3. Get 3 STARS (5000+ Score) for a 50% chance to DISCOVER THE TRACK\'S GIRL and unlock the next race!\n\n4. Hit ⚡ NITRO to burst into top speeds!</string>
+    <string name="lets_race">LET\'S RACE!!</string>
+    <string name="race_finished">RACE FINISHED!!</string>
+    <string name="new_girl_discovered">🎉 NEW GIRL DISCOVERED!! 🎉</string>
+    <string name="new_girl_unlocked">She is now unlocked &amp; the next race is UNLOCKED!</string>
+    <string name="missed_discovery_3stars">🎲 3 Stars Earned! (50% Discovery Chance Missed - Race again to discover her &amp; unlock the next track!)</string>
+    <string name="missed_discovery_needstars">🔒 Need 3 Stars (5000+ Drift Score) for a 50% chance to discover the girl &amp; unlock the next race!</string>
+    <string name="cash_label">CASH</string>
+    <string name="gems_label">GEMS</string>
+    <string name="affection_label">AFFECTION</string>
+    <string name="next_race">NEXT RACE 🏁</string>
+    <string name="continue_btn">CONTINUE</string>
+    <string name="retry_race">RETRY RACE 🔄</string>
+
+    <string name="settings_title">SETTINGS &amp; PREFERENCES</string>
+    <string name="settings_language">LANGUAGE</string>
+    <string name="settings_language_system">📱 System Default</string>
+    <string name="settings_language_es">🇪🇸 Español</string>
+    <string name="settings_language_en">🇬🇧 English</string>
+
+    <string name="settings_audio">AUDIO &amp; MUSIC</string>
+    <string name="settings_music_volume">Music Volume</string>
+    <string name="settings_music_muted">Music Muted</string>
+    <string name="settings_music_enabled">Music Enabled</string>
+
+    <string name="settings_theme">DISPLAY THEME</string>
+    <string name="settings_theme_system">📱 System Default</string>
+    <string name="settings_theme_dark">🌙 Dark Mode</string>
+    <string name="settings_theme_light">☀️ Light Mode</string>
+</resources>

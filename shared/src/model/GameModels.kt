@@ -144,5 +144,9 @@ data class GameSaveData(
     val companionAffinities: Map<String, Int> = emptyMap(),
     val completedTutorial: Boolean = false,
     val isGameCompleted: Boolean = false,
-    val leaderboardEntries: List<LeaderboardEntry> = emptyList()
+    val leaderboardEntries: List<LeaderboardEntry> = emptyList(),
+    val languageSetting: String = "SYSTEM",
+    val themeSetting: String = "SYSTEM",
+    val musicVolume: Float = 1.0f,
+    val isMuted: Boolean = false
 )

@@ -15,6 +15,8 @@ actual fun loadGameData(): String? = null
 
 actual fun getFormattedCurrentDate(): String = "2026-03-30 12:00"
 
+actual fun getSystemLanguageCode(): String = "en"
+
 actual fun playBackgroundMusic(musicTrack: String) {}
 
 actual fun stopBackgroundMusic() {}

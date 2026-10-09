@@ -38,6 +38,10 @@ actual fun getFormattedCurrentDate(): String {
     return sdf.format(java.util.Date())
 }
 
+actual fun getSystemLanguageCode(): String {
+    return java.util.Locale.getDefault().language.lowercase()
+}
+
 actual fun playBackgroundMusic(musicTrack: String) {
     RetroMidiSynthesizer.playTrack(musicTrack)
 }

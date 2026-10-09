@@ -17,8 +17,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.driftgirls.engine.GameEngine
+import com.driftgirls.resources.*
 import com.driftgirls.ui.graphics.CarCanvas
 import com.driftgirls.ui.graphics.CompanionAvatarCanvas
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun HomeScreen(
@@ -27,18 +29,28 @@ fun HomeScreen(
     onNavigateToGarage: () -> Unit,
     onNavigateToCompanions: () -> Unit,
     onNavigateToTracks: () -> Unit,
-    onNavigateToLeaderboard: () -> Unit
+    onNavigateToLeaderboard: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    isDarkTheme: Boolean = true
 ) {
     val companion = gameEngine.currentCompanion
     val car = gameEngine.currentCar
     val isGameCompleted = gameEngine.saveData.isGameCompleted
+
+    val heroCardBg = if (isDarkTheme) Color(0xFF210E36) else Color(0xFFFFFFFF)
+    val menuCardBg = if (isDarkTheme) Color(0xFF220F38) else Color(0xFFFFFFFF)
+    val mainTextColor = if (isDarkTheme) Color.White else Color(0xFF1E0A2A)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    listOf(Color(0xFF140826), Color(0xFF271040), Color(0xFF0F041D))
+                    if (isDarkTheme) {
+                        listOf(Color(0xFF140826), Color(0xFF271040), Color(0xFF0F041D))
+                    } else {
+                        listOf(Color(0xFFF5F0FF), Color(0xFFE9DCFF), Color(0xFFDFCDFF))
+                    }
                 )
             )
             .statusBarsPadding()
@@ -53,60 +65,56 @@ fun HomeScreen(
         ) {
             Column {
                 Text(
-                    text = "DRIFT GIRLS",
+                    text = stringResource(Res.string.app_title),
                     color = Color(0xFFFF007F),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Black
                 )
                 Text(
-                    text = "HIGH OCTANE DRIFT & DATING",
-                    color = Color.White.copy(alpha = 0.6f),
+                    text = stringResource(Res.string.app_subtitle),
+                    color = mainTextColor.copy(alpha = 0.6f),
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                var isMutedState by remember { mutableStateOf(com.driftgirls.isMusicMuted()) }
+                // Settings Wheel Button (⚙️)
                 Surface(
-                    onClick = {
-                        val nextMuted = !isMutedState
-                        com.driftgirls.setMusicMuted(nextMuted)
-                        isMutedState = nextMuted
-                    },
+                    onClick = onNavigateToSettings,
                     shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFF25133B)
+                    color = if (isDarkTheme) Color(0xFF25133B) else Color(0xFFE2D4F8)
                 ) {
                     Text(
-                        text = if (isMutedState) "🔇" else "🎵",
+                        text = "⚙️",
                         fontSize = 14.sp,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(6.dp))
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFF25133B)
+                    color = if (isDarkTheme) Color(0xFF25133B) else Color(0xFFE2D4F8)
                 ) {
                     Text(
                         text = "$${gameEngine.saveData.cash}",
-                        color = Color(0xFF76FF03),
+                        color = Color(0xFF2E7D32),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(6.dp))
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFF25133B)
+                    color = if (isDarkTheme) Color(0xFF25133B) else Color(0xFFE2D4F8)
                 ) {
                     Text(
                         text = "${gameEngine.saveData.gems} 💎",
-                        color = Color(0xFF00E5FF),
+                        color = Color(0xFF00838F),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
                     )
                 }
             }
@@ -127,13 +135,13 @@ fun HomeScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "👑 GAME COMPLETED - ULTIMATE DRIFT KING! 👑",
+                        text = stringResource(Res.string.game_completed_title),
                         color = Color.Black,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Black
                     )
                     Text(
-                        text = "Infinity Drift Pass (Endless 60s) Track is now UNLOCKED!",
+                        text = stringResource(Res.string.game_completed_desc),
                         color = Color.Black.copy(alpha = 0.8f),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
@@ -148,7 +156,7 @@ fun HomeScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF210E36)),
+            colors = CardDefaults.cardColors(containerColor = heroCardBg),
             border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFFF007F).copy(alpha = 0.5f))
         ) {
             Column(
@@ -165,11 +173,11 @@ fun HomeScreen(
                 ) {
                     Text(
                         text = if (companion != null) {
-                            "💬 \"Hey driver! Ready to set some new drift records today?\""
+                            stringResource(Res.string.speech_partner_ready)
                         } else {
-                            "💬 \"No companion selected yet! Win races with 3 stars for a 50% chance to discover girls!\""
+                            stringResource(Res.string.speech_no_partner)
                         },
-                        color = Color.White,
+                        color = mainTextColor,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -190,13 +198,13 @@ fun HomeScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = companion?.name ?: "No Partner",
-                            color = Color.White,
+                            text = companion?.name ?: stringResource(Res.string.no_partner),
+                            color = mainTextColor,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Black
                         )
                         Text(
-                            text = if (companion != null) "Affection: ${companion.affection}%" else "Locked",
+                            text = if (companion != null) stringResource(Res.string.affection_format, companion.affection) else stringResource(Res.string.locked),
                             color = Color(0xFFFF80AB),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
@@ -214,13 +222,13 @@ fun HomeScreen(
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = car.name,
-                            color = Color.White,
+                            color = mainTextColor,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "${car.effectiveTopSpeed(companionAffection)} KM/H",
-                            color = Color(0xFF00E5FF),
+                            text = "${car.effectiveTopSpeed(companionAffection)}${stringResource(Res.string.speed_unit)}",
+                            color = Color(0xFF00B8D4),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -241,7 +249,7 @@ fun HomeScreen(
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF007F))
         ) {
             Text(
-                text = "ENTER RACE CAREER 🏁",
+                text = stringResource(Res.string.enter_race_career),
                 color = Color.White,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Black
@@ -251,7 +259,7 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Bottom Navigation Quick Cards
-        Text(text = "GAME MENU", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text(text = stringResource(Res.string.game_menu), color = mainTextColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(10.dp))
 
         Row(
@@ -259,37 +267,45 @@ fun HomeScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             MenuCard(
-                title = "GARAGE",
-                subtitle = "Tuning",
+                title = stringResource(Res.string.menu_garage),
+                subtitle = stringResource(Res.string.menu_garage_sub),
                 icon = "🏎️",
                 color = Color(0xFFFF3D00),
+                cardBg = menuCardBg,
+                textColor = mainTextColor,
                 modifier = Modifier.weight(1f),
                 onClick = onNavigateToGarage
             )
 
             MenuCard(
-                title = "GIRLS",
-                subtitle = "Dates",
+                title = stringResource(Res.string.menu_girls),
+                subtitle = stringResource(Res.string.menu_girls_sub),
                 icon = "💕",
                 color = Color(0xFFFF007F),
+                cardBg = menuCardBg,
+                textColor = mainTextColor,
                 modifier = Modifier.weight(1f),
                 onClick = onNavigateToCompanions
             )
 
             MenuCard(
-                title = "TRACKS",
-                subtitle = "Career",
+                title = stringResource(Res.string.menu_tracks),
+                subtitle = stringResource(Res.string.menu_tracks_sub),
                 icon = "🗺️",
                 color = Color(0xFF00E5FF),
+                cardBg = menuCardBg,
+                textColor = mainTextColor,
                 modifier = Modifier.weight(1f),
                 onClick = onNavigateToTracks
             )
 
             MenuCard(
-                title = "SCORES",
-                subtitle = "Leaderboard",
+                title = stringResource(Res.string.menu_scores),
+                subtitle = stringResource(Res.string.menu_scores_sub),
                 icon = "🏆",
                 color = Color(0xFFFFD600),
+                cardBg = menuCardBg,
+                textColor = mainTextColor,
                 modifier = Modifier.weight(1f),
                 onClick = onNavigateToLeaderboard
             )
@@ -303,8 +319,8 @@ fun HomeScreen(
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
             Text(
-                text = "🔄 RESET GAME PROGRESS (FRESH START)",
-                color = Color.White.copy(alpha = 0.4f),
+                text = stringResource(Res.string.reset_progress),
+                color = mainTextColor.copy(alpha = 0.4f),
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -318,13 +334,15 @@ private fun MenuCard(
     subtitle: String,
     icon: String,
     color: Color,
+    cardBg: Color,
+    textColor: Color,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     Card(
         modifier = modifier.clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF220F38)),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
         border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f))
     ) {
         Column(
@@ -333,8 +351,8 @@ private fun MenuCard(
         ) {
             Text(text = icon, fontSize = 22.sp)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = title, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Black)
-            Text(text = subtitle, color = Color.White.copy(alpha = 0.5f), fontSize = 8.sp)
+            Text(text = title, color = textColor, fontSize = 11.sp, fontWeight = FontWeight.Black)
+            Text(text = subtitle, color = textColor.copy(alpha = 0.5f), fontSize = 8.sp)
         }
     }
 }

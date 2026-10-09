@@ -22,8 +22,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.driftgirls.engine.GameEngine
+import com.driftgirls.i18n.localizedSubtitle
 import com.driftgirls.model.Car
+import com.driftgirls.resources.*
 import com.driftgirls.ui.graphics.CarCanvas
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun GarageScreen(
@@ -72,7 +75,7 @@ fun GarageScreen(
             }
 
             Text(
-                text = "GARAGE & TUNING",
+                text = stringResource(Res.string.garage_title),
                 color = Color.White,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Black
@@ -130,7 +133,7 @@ fun GarageScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = if (isCarOwned) "OWNED" else "$${car.price}",
+                            text = if (isCarOwned) stringResource(Res.string.owned) else "$${car.price}",
                             color = if (isCarOwned) Color(0xFF76FF03) else Color(0xFFFFD600),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
@@ -166,7 +169,7 @@ fun GarageScreen(
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Text(
-                    text = if (companion != null) "${companion.name} Buff: +${companion.affection}%" else "No Partner Buff",
+                    text = if (companion != null) stringResource(Res.string.partner_buff_format, companion.name, companion.affection) else stringResource(Res.string.no_partner_buff),
                     color = Color.White,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
@@ -178,7 +181,7 @@ fun GarageScreen(
 
         // Vehicle Details
         Text(text = previewCar.name, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
-        Text(text = previewCar.subtitle, color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp)
+        Text(text = previewCar.localizedSubtitle(), color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -193,8 +196,8 @@ fun GarageScreen(
         val nitroCost = gameEngine.getUpgradeCost(previewCar, "NITRO")
 
         StatRow(
-            label = "TOP SPEED",
-            valueText = "$effSpeed KM/H",
+            label = stringResource(Res.string.stat_top_speed),
+            valueText = "$effSpeed${stringResource(Res.string.speed_unit)}",
             progress = effSpeed / 400f,
             level = previewCar.engineUpgradeLevel,
             upgradeCost = engineCost,
@@ -205,7 +208,7 @@ fun GarageScreen(
         }
         Spacer(modifier = Modifier.height(8.dp))
         StatRow(
-            label = "DRIFT CONTROL",
+            label = stringResource(Res.string.stat_drift_control),
             valueText = "$effDrift / 100",
             progress = effDrift / 100f,
             level = previewCar.tiresUpgradeLevel,
@@ -217,7 +220,7 @@ fun GarageScreen(
         }
         Spacer(modifier = Modifier.height(8.dp))
         StatRow(
-            label = "NITRO CAPACITY",
+            label = stringResource(Res.string.stat_nitro_capacity),
             valueText = "$effNitro / 100",
             progress = effNitro / 100f,
             level = previewCar.nitroUpgradeLevel,
@@ -231,7 +234,7 @@ fun GarageScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         // Custom Paint Color Palette
-        Text("CUSTOM PAINT COLOR", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(Res.string.custom_paint), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -268,7 +271,7 @@ fun GarageScreen(
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF007F))
                 ) {
-                    Text("DRIVE NOW!! 🏎️", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                    Text(stringResource(Res.string.drive_now), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
                 }
             } else {
                 Button(
@@ -277,7 +280,7 @@ fun GarageScreen(
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF))
                 ) {
-                    Text("SELECT CAR", color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                    Text(stringResource(Res.string.select_car), color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Black)
                 }
             }
         } else {
@@ -289,7 +292,7 @@ fun GarageScreen(
                 enabled = gameEngine.saveData.cash >= previewCar.price
             ) {
                 Text(
-                    text = "BUY CAR ($${previewCar.price})",
+                    text = stringResource(Res.string.buy_car_format, previewCar.price),
                     color = Color.Black,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Black
@@ -325,7 +328,7 @@ private fun StatRow(
                         .padding(horizontal = 4.dp, vertical = 1.dp)
                 ) {
                     Text(
-                        text = if (level >= 5) "MAX" else "LV. $level",
+                        text = if (level >= 5) stringResource(Res.string.max_level) else stringResource(Res.string.level_format, level),
                         color = if (level >= 5) Color(0xFFFFD600) else Color(0xFF00E5FF),
                         fontSize = 9.sp,
                         fontWeight = FontWeight.ExtraBold
@@ -357,7 +360,7 @@ private fun StatRow(
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
-                    text = if (level >= 5) "MAX" else "+UPGRADE ($$upgradeCost)",
+                    text = if (level >= 5) stringResource(Res.string.max_level) else stringResource(Res.string.upgrade_cost_format, upgradeCost),
                     color = if (level >= 5) Color.White.copy(alpha = 0.5f) else if (canAfford) Color.Black else Color.White.copy(alpha = 0.6f),
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Black

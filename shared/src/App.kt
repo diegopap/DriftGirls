@@ -1,14 +1,19 @@
 package com.driftgirls
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.driftgirls.engine.GameEngine
+import com.driftgirls.i18n.AppSettings
+import com.driftgirls.i18n.ThemeSetting
 import com.driftgirls.ui.screens.*
 import org.jetbrains.compose.reload.DevelopmentEntryPoint
 
@@ -18,7 +23,8 @@ enum class Screen {
     GARAGE,
     COMPANIONS,
     TRACKS,
-    LEADERBOARD
+    LEADERBOARD,
+    SETTINGS
 }
 
 @Composable
@@ -28,6 +34,13 @@ fun App() {
     val gameEngine = remember { GameEngine() }
     val backStack = remember { mutableStateListOf(Screen.HOME) }
     val currentScreen = backStack.lastOrNull() ?: Screen.HOME
+
+    val systemInDark = isSystemInDarkTheme()
+    val isDarkTheme = when (AppSettings.themeSetting) {
+        ThemeSetting.SYSTEM -> systemInDark
+        ThemeSetting.DARK -> true
+        ThemeSetting.LIGHT -> false
+    }
 
     val currentTrackId = gameEngine.activeRaceState?.track?.id
     LaunchedEffect(currentScreen, currentTrackId) {
@@ -65,10 +78,12 @@ fun App() {
         }
     }
 
-    MaterialTheme {
+    MaterialTheme(
+        colorScheme = if (isDarkTheme) darkColorScheme() else lightColorScheme()
+    ) {
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = Color(0xFF0F041D)
+            color = if (isDarkTheme) Color(0xFF0F041D) else Color(0xFFF5F0FF)
         ) {
             Crossfade(targetState = currentScreen) { screen ->
                 when (screen) {
@@ -78,7 +93,9 @@ fun App() {
                         onNavigateToGarage = { navigateTo(Screen.GARAGE) },
                         onNavigateToCompanions = { navigateTo(Screen.COMPANIONS) },
                         onNavigateToTracks = { navigateTo(Screen.TRACKS) },
-                        onNavigateToLeaderboard = { navigateTo(Screen.LEADERBOARD) }
+                        onNavigateToLeaderboard = { navigateTo(Screen.LEADERBOARD) },
+                        onNavigateToSettings = { navigateTo(Screen.SETTINGS) },
+                        isDarkTheme = isDarkTheme
                     )
                     Screen.RACE -> RaceScreen(
                         gameEngine = gameEngine,
@@ -113,6 +130,11 @@ fun App() {
                     Screen.LEADERBOARD -> LeaderboardScreen(
                         gameEngine = gameEngine,
                         onBackToHome = goBack
+                    )
+                    Screen.SETTINGS -> SettingsScreen(
+                        gameEngine = gameEngine,
+                        onBackToHome = goBack,
+                        isDarkTheme = isDarkTheme
                     )
                 }
             }

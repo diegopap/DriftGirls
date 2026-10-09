@@ -48,11 +48,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.driftgirls.engine.GameEngine
+import com.driftgirls.i18n.localizedTitle
 import com.driftgirls.model.RacePhase
+import com.driftgirls.resources.*
 import com.driftgirls.ui.graphics.ArcadeTrackCanvas
 import com.driftgirls.ui.graphics.CarCanvas
 import com.driftgirls.ui.graphics.CircularTachometer
 import com.driftgirls.ui.graphics.CompanionAvatarCanvas
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun RaceScreen(
@@ -178,7 +181,7 @@ fun RaceScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp)
                 ) {
-                    Text("EXIT", color = Color.White, fontSize = 10.sp)
+                    Text(stringResource(Res.string.exit), color = Color.White, fontSize = 10.sp)
                 }
             }
 
@@ -213,7 +216,7 @@ fun RaceScreen(
                             fontWeight = FontWeight.Black
                         )
                         Text(
-                            text = " KM/H",
+                            text = stringResource(Res.string.speed_unit),
                             color = Color.White.copy(alpha = 0.7f),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
@@ -223,7 +226,7 @@ fun RaceScreen(
 
                     if (race.comboMultiplier > 1) {
                         Text(
-                            text = "🔥 ${race.comboMultiplier}x COMBO!",
+                            text = stringResource(Res.string.combo_format, race.comboMultiplier),
                             color = Color(0xFFFFD600),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.ExtraBold
@@ -234,7 +237,7 @@ fun RaceScreen(
                 // Drift Score
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = "DRIFT SCORE",
+                        text = stringResource(Res.string.drift_score_label),
                         color = Color.White.copy(alpha = 0.6f),
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold
@@ -253,7 +256,7 @@ fun RaceScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("NITRO", color = Color(0xFF00E5FF), fontSize = 10.sp, fontWeight = FontWeight.Black)
+                Text(stringResource(Res.string.nitro_label), color = Color(0xFF00E5FF), fontSize = 10.sp, fontWeight = FontWeight.Black)
                 Spacer(modifier = Modifier.width(6.dp))
                 LinearProgressIndicator(
                     progress = { race.nitroLevel / 100f },
@@ -284,7 +287,7 @@ fun RaceScreen(
                         .padding(horizontal = 14.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = "⏱️ TIME REMAINING: $wholeSec.${tenths}s",
+                        text = stringResource(Res.string.time_remaining_format, wholeSec, tenths),
                         color = Color.Black,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Black
@@ -367,7 +370,7 @@ fun RaceScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "ENGINE TACHOMETER",
+                            text = stringResource(Res.string.engine_tachometer),
                             color = Color.White.copy(alpha = 0.7f),
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold
@@ -383,7 +386,7 @@ fun RaceScreen(
                         Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
-                            text = "🎯 TARGET: 6,400 - 7,300 RPM (GREEN ZONE)",
+                            text = stringResource(Res.string.tachometer_target),
                             color = Color(0xFFFFD600),
                             fontSize = 9.sp,
                             fontWeight = FontWeight.ExtraBold,
@@ -438,7 +441,7 @@ fun RaceScreen(
                     contentPadding = PaddingValues(0.dp),
                     elevation = ButtonDefaults.buttonElevation(8.dp)
                 ) {
-                    Text("⚡ NITRO", color = Color.Black, fontSize = 13.sp, fontWeight = FontWeight.Black)
+                    Text(stringResource(Res.string.btn_nitro), color = Color.Black, fontSize = 13.sp, fontWeight = FontWeight.Black)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -463,7 +466,7 @@ fun RaceScreen(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("◄ DRIFT", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Black)
+                    Text(stringResource(Res.string.btn_drift_left), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Black)
                 }
             }
 
@@ -492,7 +495,7 @@ fun RaceScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("🏎️", fontSize = 15.sp)
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("GAS", color = Color.Black, fontSize = 13.sp, fontWeight = FontWeight.Black)
+                            Text(stringResource(Res.string.btn_gas), color = Color.Black, fontSize = 13.sp, fontWeight = FontWeight.Black)
                         }
                     }
 
@@ -519,7 +522,7 @@ fun RaceScreen(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("DRIFT ►", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Black)
+                    Text(stringResource(Res.string.btn_drift_right), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Black)
                 }
             }
         }
@@ -551,7 +554,7 @@ fun RaceScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = "RACE TUTORIAL",
+                            text = stringResource(Res.string.tutorial_title),
                             color = Color(0xFFFFD600),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Black
@@ -560,10 +563,7 @@ fun RaceScreen(
                         Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
-                            text = "1. During 5s countdown, hold GAS 🏎️ to keep RPM in the GREEN ZONE (6,400 - 7,300 RPM) for a PERFECT LAUNCH!\n\n" +
-                                    "2. Tap & hold ◄ DRIFT or DRIFT ► in corners for high-score drifts!\n\n" +
-                                    "3. Get 3 STARS (5000+ Score) for a 50% chance to DISCOVER THE TRACK'S GIRL and unlock the next race!\n\n" +
-                                    "4. Hit ⚡ NITRO to burst into top speeds!",
+                            text = stringResource(Res.string.tutorial_body),
                             color = Color.White,
                             fontSize = 12.sp,
                             lineHeight = 16.sp
@@ -576,7 +576,7 @@ fun RaceScreen(
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF007F))
                         ) {
-                            Text("LET'S RACE!!", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text(stringResource(Res.string.lets_race), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                         }
                     }
                 }
@@ -605,7 +605,7 @@ fun RaceScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "RACE FINISHED!!",
+                            text = stringResource(Res.string.race_finished),
                             color = Color(0xFFFFD600),
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Black
@@ -635,7 +635,7 @@ fun RaceScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text(
-                                        text = "🎉 NEW GIRL DISCOVERED!! 🎉",
+                                        text = stringResource(Res.string.new_girl_discovered),
                                         color = Color(0xFFFFD600),
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Black
@@ -654,14 +654,14 @@ fun RaceScreen(
                                         fontWeight = FontWeight.Black
                                     )
                                     Text(
-                                        text = newlyMet.title,
+                                        text = newlyMet.localizedTitle(),
                                         color = Color(0xFFFF80AB),
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = "She is now unlocked & the next race is UNLOCKED!",
+                                        text = stringResource(Res.string.new_girl_unlocked),
                                         color = Color.White.copy(alpha = 0.9f),
                                         fontSize = 11.sp,
                                         textAlign = TextAlign.Center
@@ -683,9 +683,9 @@ fun RaceScreen(
                                 ) {
                                     Text(
                                         text = if (race.starsEarned == 3) {
-                                            "🎲 3 Stars Earned! (50% Discovery Chance Missed - Race again to discover her & unlock the next track!)"
+                                            stringResource(Res.string.missed_discovery_3stars)
                                         } else {
-                                            "🔒 Need 3 Stars (5000+ Drift Score) for a 50% chance to discover the girl & unlock the next race!"
+                                            stringResource(Res.string.missed_discovery_needstars)
                                         },
                                         color = Color(0xFFFFD600),
                                         fontSize = 11.sp,
@@ -703,16 +703,16 @@ fun RaceScreen(
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("CASH", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Text(stringResource(Res.string.cash_label), color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 Text("+$${race.earnedCash}", color = Color(0xFF76FF03), fontSize = 16.sp, fontWeight = FontWeight.Black)
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("GEMS", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Text(stringResource(Res.string.gems_label), color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 Text("+${race.earnedGems} 💎", color = Color(0xFF00E5FF), fontSize = 16.sp, fontWeight = FontWeight.Black)
                             }
                             if (race.companion != null) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text("AFFECTION", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    Text(stringResource(Res.string.affection_label), color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                     Text("+${race.earnedAffection} 💕", color = Color(0xFFFF4081), fontSize = 16.sp, fontWeight = FontWeight.Black)
                                 }
                             }
@@ -734,7 +734,7 @@ fun RaceScreen(
                                 onClick = onGoToGarage,
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Text("GARAGE", color = Color.White)
+                                Text(stringResource(Res.string.menu_garage), color = Color.White)
                             }
                             Spacer(modifier = Modifier.width(12.dp))
 
@@ -752,7 +752,7 @@ fun RaceScreen(
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF76FF03))
                                 ) {
                                     Text(
-                                        text = if (nextTrackId != null) "NEXT RACE 🏁" else "CONTINUE",
+                                        text = if (nextTrackId != null) stringResource(Res.string.next_race) else stringResource(Res.string.continue_btn),
                                         color = Color.Black,
                                         fontWeight = FontWeight.Black
                                     )
@@ -767,7 +767,7 @@ fun RaceScreen(
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD600))
                                 ) {
                                     Text(
-                                        text = "RETRY RACE 🔄",
+                                        text = stringResource(Res.string.retry_race),
                                         color = Color.Black,
                                         fontWeight = FontWeight.Black
                                     )
@@ -779,7 +779,7 @@ fun RaceScreen(
                                     modifier = Modifier.weight(1f),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF007F))
                                 ) {
-                                    Text("CONTINUE", color = Color.White, fontWeight = FontWeight.Bold)
+                                    Text(stringResource(Res.string.continue_btn), color = Color.White, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }

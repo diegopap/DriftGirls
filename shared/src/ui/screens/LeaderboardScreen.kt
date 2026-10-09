@@ -16,6 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.driftgirls.engine.GameEngine
+import com.driftgirls.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun LeaderboardScreen(
@@ -49,7 +51,7 @@ fun LeaderboardScreen(
             }
 
             Text(
-                text = "DRIFT LEADERBOARD 🏆",
+                text = stringResource(Res.string.leaderboard_title),
                 color = Color.White,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Black
@@ -75,7 +77,7 @@ fun LeaderboardScreen(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "📊 RANKED BY HIGHEST DRIFT SCORE & RECENT DATE",
+                text = stringResource(Res.string.leaderboard_subtitle),
                 color = Color(0xFFFFD600),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold
@@ -103,14 +105,14 @@ fun LeaderboardScreen(
                         Text("🏁", fontSize = 42.sp)
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = "NO HIGH SCORES YET!",
+                            text = stringResource(Res.string.no_high_scores),
                             color = Color.White,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Black
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Complete races on Career Tracks or Infinity Drift Pass to record your scores!",
+                            text = stringResource(Res.string.no_high_scores_desc),
                             color = Color.White.copy(alpha = 0.6f),
                             fontSize = 12.sp,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -201,7 +203,7 @@ fun LeaderboardScreen(
 
                                 if (entry.companionName != null) {
                                     Text(
-                                        text = "Partner: ${entry.companionName}",
+                                        text = stringResource(Res.string.partner_format, entry.companionName),
                                         color = Color(0xFF00E5FF),
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold

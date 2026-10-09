@@ -3,6 +3,7 @@ package com.driftgirls.engine
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.driftgirls.i18n.*
 import com.driftgirls.loadGameData
 import com.driftgirls.model.*
 import com.driftgirls.saveGameData
@@ -336,7 +337,11 @@ class GameEngine {
                 carCustoms,
                 saveData.discoveredCompanionIds.joinToString(","),
                 if (saveData.isGameCompleted) "1" else "0",
-                leaderboardPayload
+                leaderboardPayload,
+                saveData.languageSetting,
+                saveData.themeSetting,
+                saveData.musicVolume.toString(),
+                if (saveData.isMuted) "1" else "0"
             ).joinToString("||")
 
             saveGameData(payload)
@@ -403,6 +408,20 @@ class GameEngine {
                     )
                 } else emptyList()
 
+                val langSettingStr = if (parts.size >= 13) parts[12].ifBlank { "SYSTEM" } else "SYSTEM"
+                val themeSettingStr = if (parts.size >= 14) parts[13].ifBlank { "SYSTEM" } else "SYSTEM"
+                val musicVol = if (parts.size >= 15) parts[14].toFloatOrNull() ?: 1.0f else 1.0f
+                val isMuted = if (parts.size >= 16) parts[15] == "1" else false
+
+                val langSetting = try { LanguageSetting.valueOf(langSettingStr.uppercase()) } catch (e: Exception) { LanguageSetting.SYSTEM }
+                val themeSetting = try { ThemeSetting.valueOf(themeSettingStr.uppercase()) } catch (e: Exception) { ThemeSetting.SYSTEM }
+
+                AppSettings.languageSetting = langSetting
+                AppSettings.themeSetting = themeSetting
+                AppSettings.musicVolume = musicVol
+                AppSettings.isMuted = isMuted
+                com.driftgirls.setMusicMuted(isMuted)
+
                 // Strictly sanitize unlocked tracks based on discovered companions
                 val sanitizedUnlockedTracks = mutableSetOf("track_tutorial")
                 if (discoveredCompanionIds.contains("aoi")) sanitizedUnlockedTracks.add("track_neon_city")
@@ -428,7 +447,11 @@ class GameEngine {
                     companionAffinities = companionAffinities,
                     completedTutorial = completedTutorial,
                     isGameCompleted = isGameCompleted,
-                    leaderboardEntries = leaderboardEntries
+                    leaderboardEntries = leaderboardEntries,
+                    languageSetting = langSetting.name,
+                    themeSetting = themeSetting.name,
+                    musicVolume = musicVol,
+                    isMuted = isMuted
                 )
 
                 cars = cars.map { car ->
@@ -743,10 +766,17 @@ class GameEngine {
 
         race.entryDriftRating = rating
         race.lastDriftRating = rating
+        val isEs = com.driftgirls.i18n.AppLanguage.currentLanguage == com.driftgirls.i18n.Language.ES
+        val localizedRatingLabel = rating.localizedLabel()
+
         race.driftDisplayBanner = if (rating == DriftRating.MISS) {
-            if (!isCorrectDirection) "WRONG DIRECTION! (MISS)" else "ENTRY MISS!"
+            if (!isCorrectDirection) {
+                if (isEs) "¡DIRECCIÓN INCORRECTA! (FALLO)" else "WRONG DIRECTION! (MISS)"
+            } else {
+                if (isEs) "¡ENTRADA FALLIDA!" else "ENTRY MISS!"
+            }
         } else {
-            "${rating.label} ENTRY!"
+            if (isEs) "¡ENTRADA $localizedRatingLabel!" else "$localizedRatingLabel ENTRY!"
         }
         race.ratingDisplayTimer = 2.0f
 
@@ -759,13 +789,17 @@ class GameEngine {
             race.nitroLevel = min(100f, race.nitroLevel + rating.nitroBonus)
 
             if (race.companion != null) {
-                val speech = race.companion.dialogueLines.random()
-                race.companionSpeech = "${rating.label} ENTRY! $speech"
+                val speech = race.companion.localizedDialogueLines().random()
+                race.companionSpeech = if (isEs) "¡ENTRADA $localizedRatingLabel! $speech" else "$localizedRatingLabel ENTRY! $speech"
             }
         } else {
             race.comboMultiplier = 1
             if (race.companion != null) {
-                race.companionSpeech = if (!isCorrectDirection) "Wrong turn direction! Steer the other way!" else "Missed entry point!"
+                race.companionSpeech = if (!isCorrectDirection) {
+                    if (isEs) "¡Dirección incorrecta! ¡Gira hacia el otro lado!" else "Wrong turn direction! Steer the other way!"
+                } else {
+                    if (isEs) "¡Punto de entrada no alcanzado!" else "Missed entry point!"
+                }
             }
         }
         race.companionSpeechTimer = 2.5f
@@ -803,13 +837,22 @@ class GameEngine {
 
         race.exitDriftRating = exitRating
         race.lastDriftRating = exitRating
+        val isEs = com.driftgirls.i18n.AppLanguage.currentLanguage == com.driftgirls.i18n.Language.ES
 
         if (exitRating == DriftRating.MISS) {
             race.comboMultiplier = 1
-            val missMsg = if (progress < 0.55f) "EARLY EXIT! (MISS)" else "LATE EXIT! (MISS)"
+            val missMsg = if (isEs) {
+                if (progress < 0.55f) "¡SALIDA ANTICIPADA! (FALLO)" else "¡SALIDA TARDÍA! (FALLO)"
+            } else {
+                if (progress < 0.55f) "EARLY EXIT! (MISS)" else "LATE EXIT! (MISS)"
+            }
             race.driftDisplayBanner = missMsg
             if (race.companion != null) {
-                race.companionSpeech = if (progress < 0.55f) "Released too early!" else "Held too long past corner!"
+                race.companionSpeech = if (isEs) {
+                    if (progress < 0.55f) "¡Soltaste demasiado pronto!" else "¡Mantuviste demasiado tiempo tras la curva!"
+                } else {
+                    if (progress < 0.55f) "Released too early!" else "Held too long past corner!"
+                }
             }
         } else if (race.entryDriftRating == DriftRating.PERFECT && exitRating == DriftRating.PERFECT) {
             race.exitDriftRating = exitRating
@@ -817,14 +860,20 @@ class GameEngine {
             race.driftScore += 2500
             race.nitroLevel = min(100f, race.nitroLevel + 50f)
             race.comboMultiplier = min(10, race.comboMultiplier + 2)
-            race.driftDisplayBanner = "DOUBLE PERFECT DRIFT!! 🚀"
-            if (race.companion != null) race.companionSpeech = "DOUBLE PERFECT DRIFT!! MAGNIFICENT!! 🚀"
+            val doublePerfBanner = if (isEs) "¡¡DERRAPE DOBLE PERFECTO!! 🚀" else "DOUBLE PERFECT DRIFT!! 🚀"
+            race.driftDisplayBanner = doublePerfBanner
+            if (race.companion != null) {
+                race.companionSpeech = if (isEs) "¡¡DERRAPE DOBLE PERFECTO!! ¡¡MAGNÍFICO!! 🚀" else "DOUBLE PERFECT DRIFT!! MAGNIFICENT!! 🚀"
+            }
         } else {
             race.exitDriftRating = exitRating
             race.lastDriftRating = exitRating
             race.driftScore += (600 * exitRating.scoreMultiplier).toInt()
-            race.driftDisplayBanner = "${exitRating.label} EXIT!"
-            if (race.companion != null) race.companionSpeech = "${exitRating.label} EXIT!! Great control!"
+            val localizedLabel = exitRating.localizedLabel()
+            race.driftDisplayBanner = if (isEs) "¡SALIDA $localizedLabel!" else "$localizedLabel EXIT!"
+            if (race.companion != null) {
+                race.companionSpeech = if (isEs) "¡¡SALIDA $localizedLabel!! ¡Gran control!" else "$localizedLabel EXIT!! Great control!"
+            }
         }
 
         race.ratingDisplayTimer = 2.2f
@@ -836,7 +885,8 @@ class GameEngine {
         if (race.nitroLevel >= 25f && !race.isNitroActive) {
             race.isNitroActive = true
             if (race.companion != null) {
-                race.companionSpeech = "NITRO BOOSTER ENGAGED!!"
+                val isEs = com.driftgirls.i18n.AppLanguage.currentLanguage == com.driftgirls.i18n.Language.ES
+                race.companionSpeech = if (isEs) "¡¡PROPULSOR NITRO ACTIVADO!!" else "NITRO BOOSTER ENGAGED!!"
                 race.companionSpeechTimer = 2.0f
             }
         }
@@ -963,6 +1013,36 @@ class GameEngine {
         saveData = GameSaveData()
         cars = GameDataDefaults.initialCars
         companions = GameDataDefaults.initialCompanions
+        AppSettings.languageSetting = LanguageSetting.SYSTEM
+        AppSettings.themeSetting = ThemeSetting.SYSTEM
+        AppSettings.musicVolume = 1.0f
+        AppSettings.isMuted = false
+        com.driftgirls.setMusicMuted(false)
+        persistSaveToDisk()
+    }
+
+    fun updateLanguageSetting(setting: LanguageSetting) {
+        AppSettings.languageSetting = setting
+        saveData = saveData.copy(languageSetting = setting.name)
+        persistSaveToDisk()
+    }
+
+    fun updateThemeSetting(setting: ThemeSetting) {
+        AppSettings.themeSetting = setting
+        saveData = saveData.copy(themeSetting = setting.name)
+        persistSaveToDisk()
+    }
+
+    fun updateMusicVolume(volume: Float) {
+        AppSettings.musicVolume = volume
+        saveData = saveData.copy(musicVolume = volume)
+        persistSaveToDisk()
+    }
+
+    fun updateMuted(muted: Boolean) {
+        AppSettings.isMuted = muted
+        saveData = saveData.copy(isMuted = muted)
+        com.driftgirls.setMusicMuted(muted)
         persistSaveToDisk()
     }
 
