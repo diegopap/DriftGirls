@@ -961,6 +961,8 @@ class GameEngine {
 
     fun resetGameProgress() {
         saveData = GameSaveData()
+        cars = GameDataDefaults.initialCars
+        companions = GameDataDefaults.initialCompanions
         persistSaveToDisk()
     }
 
