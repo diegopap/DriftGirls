@@ -32,7 +32,7 @@ import kotlin.math.sin
 @Composable
 fun CompanionAvatarCanvas(
     companion: GirlCompanion?,
-    expression: String = "HAPPY", // HAPPY, WINK, SURPRISED, EXCITED
+    expression: String = "HAPPY", // HAPPY, WINK, SURPRISED, EXCITED, BLUSHING
     modifier: Modifier = Modifier.size(100.dp)
 ) {
     if (companion == null) {
@@ -42,30 +42,25 @@ fun CompanionAvatarCanvas(
             val centerX = width / 2f
             val centerY = height / 2f
 
+            // Locked / placeholder avatar
             drawCircle(
-                color = Color(0xFF2C103D),
+                brush = Brush.radialGradient(
+                    colors = listOf(Color(0xFF3B1854), Color(0xFF160B24)),
+                    center = Offset(centerX, centerY),
+                    radius = width * 0.5f
+                ),
                 radius = width * 0.48f,
                 center = Offset(centerX, centerY)
             )
             drawCircle(
-                color = Color(0xFF160B24),
-                radius = width * 0.42f,
-                center = Offset(centerX, centerY)
-            )
-            // Head silhouette
-            drawCircle(
-                color = Color(0xFF4A256B),
-                radius = width * 0.18f,
+                color = Color(0xFF4A256B).copy(alpha = 0.6f),
+                radius = width * 0.22f,
                 center = Offset(centerX, centerY - height * 0.08f)
             )
-            // Shoulders
-            drawArc(
-                color = Color(0xFF4A256B),
-                startAngle = 180f,
-                sweepAngle = 180f,
-                useCenter = true,
-                topLeft = Offset(centerX - width * 0.28f, centerY + height * 0.02f),
-                size = Size(width * 0.56f, height * 0.35f)
+            drawCircle(
+                color = Color.White.copy(alpha = 0.3f),
+                radius = width * 0.1f,
+                center = Offset(centerX, centerY + height * 0.05f)
             )
         }
         return
@@ -79,72 +74,126 @@ fun CompanionAvatarCanvas(
         val centerX = width / 2f
         val centerY = height / 2f
 
-        // Background circle glow
+        // 1. Vibrant Background Glow & Badge Rim
         drawCircle(
-            color = accentColor.copy(alpha = 0.25f),
-            radius = width * 0.48f,
+            brush = Brush.radialGradient(
+                colors = listOf(accentColor.copy(alpha = 0.45f), accentColor.copy(alpha = 0.05f)),
+                center = Offset(centerX, centerY),
+                radius = width * 0.5f
+            ),
+            radius = width * 0.49f,
             center = Offset(centerX, centerY)
         )
         drawCircle(
-            color = Color.White,
-            radius = width * 0.42f,
+            color = Color(0xFF160826),
+            radius = width * 0.43f,
             center = Offset(centerX, centerY)
         )
 
-        // Hair Back
+        // 2. Hair Back & Volume Layers
         when (companion.id) {
             "aoi" -> {
-                // Pink twin tails
-                drawCircle(Color(0xFFFF4081), width * 0.22f, Offset(centerX - width * 0.32f, centerY - height * 0.05f))
-                drawCircle(Color(0xFFFF4081), width * 0.22f, Offset(centerX + width * 0.32f, centerY - height * 0.05f))
+                // Pink twin tails with shadow & highlights
+                drawCircle(Color(0xFFC2185B), width * 0.24f, Offset(centerX - width * 0.33f, centerY - height * 0.04f))
+                drawCircle(Color(0xFFFF4081), width * 0.21f, Offset(centerX - width * 0.32f, centerY - height * 0.05f))
+                drawCircle(Color(0xFFC2185B), width * 0.24f, Offset(centerX + width * 0.33f, centerY - height * 0.04f))
+                drawCircle(Color(0xFFFF4081), width * 0.21f, Offset(centerX + width * 0.32f, centerY - height * 0.05f))
             }
             "sora" -> {
-                // Cyan long hair flow
+                // Cyan long flowing hair with gradient curves
                 val hairPath = Path().apply {
-                    moveTo(centerX - width * 0.35f, centerY - height * 0.1f)
-                    quadraticTo(centerX - width * 0.4f, centerY + height * 0.4f, centerX - width * 0.2f, centerY + height * 0.45f)
-                    lineTo(centerX + width * 0.2f, centerY + height * 0.45f)
-                    quadraticTo(centerX + width * 0.4f, centerY + height * 0.4f, centerX + width * 0.35f, centerY - height * 0.1f)
+                    moveTo(centerX - width * 0.38f, centerY - height * 0.12f)
+                    cubicTo(centerX - width * 0.45f, centerY + height * 0.1f, centerX - width * 0.35f, centerY + height * 0.42f, centerX - width * 0.22f, centerY + height * 0.48f)
+                    lineTo(centerX + width * 0.22f, centerY + height * 0.48f)
+                    cubicTo(centerX + width * 0.35f, centerY + height * 0.42f, centerX + width * 0.45f, centerY + height * 0.1f, centerX + width * 0.38f, centerY - height * 0.12f)
                     close()
                 }
-                drawPath(hairPath, Color(0xFF00E5FF))
+                drawPath(hairPath, Color(0xFF00838F))
+                val hairPathInner = Path().apply {
+                    moveTo(centerX - width * 0.34f, centerY - height * 0.1f)
+                    cubicTo(centerX - width * 0.4f, centerY + height * 0.1f, centerX - width * 0.3f, centerY + height * 0.38f, centerX - width * 0.18f, centerY + height * 0.42f)
+                    lineTo(centerX + width * 0.18f, centerY + height * 0.42f)
+                    cubicTo(centerX + width * 0.3f, centerY + height * 0.38f, centerX + width * 0.4f, centerY + height * 0.1f, centerX + width * 0.34f, centerY - height * 0.1f)
+                    close()
+                }
+                drawPath(hairPathInner, Color(0xFF00E5FF))
             }
             "elena" -> {
-                // Orange ponytail
-                drawCircle(Color(0xFFFF9100), width * 0.25f, Offset(centerX, centerY - height * 0.32f))
+                // Fiery orange high ponytail
+                drawCircle(Color(0xFFE65100), width * 0.28f, Offset(centerX, centerY - height * 0.34f))
+                drawCircle(Color(0xFFFF9100), width * 0.23f, Offset(centerX, centerY - height * 0.33f))
             }
-            "mia" -> {
-                // Purple bob
+            else -> {
+                // Purple stylish bob
+                drawRoundRect(
+                    Color(0xFF4A148C),
+                    topLeft = Offset(centerX - width * 0.35f, centerY - height * 0.36f),
+                    size = Size(width * 0.7f, height * 0.72f),
+                    cornerRadius = CornerRadius(28f, 28f)
+                )
                 drawRoundRect(
                     Color(0xFF7C4DFF),
-                    topLeft = Offset(centerX - width * 0.32f, centerY - height * 0.35f),
-                    size = Size(width * 0.64f, height * 0.65f),
+                    topLeft = Offset(centerX - width * 0.32f, centerY - height * 0.34f),
+                    size = Size(width * 0.64f, height * 0.68f),
                     cornerRadius = CornerRadius(24f, 24f)
                 )
             }
         }
 
-        // Face Skin
-        val faceRadius = width * 0.28f
+        // 3. Shoulders & Outfit Collar
+        val outfitColor = when (companion.id) {
+            "aoi" -> Color(0xFFAD1457)
+            "sora" -> Color(0xFF006064)
+            "elena" -> Color(0xFFBF360C)
+            else -> Color(0xFF311B92)
+        }
+        drawArc(
+            color = outfitColor,
+            startAngle = 180f,
+            sweepAngle = 180f,
+            useCenter = true,
+            topLeft = Offset(centerX - width * 0.32f, centerY + height * 0.08f),
+            size = Size(width * 0.64f, height * 0.4f)
+        )
+        // Collar V-cut
+        val collarPath = Path().apply {
+            moveTo(centerX - width * 0.12f, centerY + height * 0.12f)
+            lineTo(centerX, centerY + height * 0.22f)
+            lineTo(centerX + width * 0.12f, centerY + height * 0.12f)
+            close()
+        }
+        drawPath(collarPath, Color.White)
+
+        // 4. Face Skin & Soft Contour Shading
+        val faceRadius = width * 0.27f
         drawCircle(
-            color = Color(0xFFFFE0B2), // Warm fair skin tone
+            color = Color(0xFFFFE0B2), // Warm fair skin
             radius = faceRadius,
             center = Offset(centerX, centerY + height * 0.02f)
         )
-
-        // Blush
-        drawCircle(
-            color = Color(0xFFFF80AB).copy(alpha = 0.5f),
-            radius = width * 0.06f,
-            center = Offset(centerX - width * 0.16f, centerY + height * 0.08f)
-        )
-        drawCircle(
-            color = Color(0xFFFF80AB).copy(alpha = 0.5f),
-            radius = width * 0.06f,
-            center = Offset(centerX + width * 0.16f, centerY + height * 0.08f)
+        // Chin shadow
+        drawArc(
+            color = Color(0xFFFFCC80).copy(alpha = 0.5f),
+            startAngle = 0f,
+            sweepAngle = 180f,
+            useCenter = true,
+            topLeft = Offset(centerX - width * 0.15f, centerY + height * 0.14f),
+            size = Size(width * 0.3f, height * 0.12f)
         )
 
-        // Eyes
+        // 5. Dual Blushing Cheeks (Glowing)
+        drawCircle(
+            color = Color(0xFFFF80AB).copy(alpha = 0.6f),
+            radius = width * 0.065f,
+            center = Offset(centerX - width * 0.15f, centerY + height * 0.07f)
+        )
+        drawCircle(
+            color = Color(0xFFFF80AB).copy(alpha = 0.6f),
+            radius = width * 0.065f,
+            center = Offset(centerX + width * 0.15f, centerY + height * 0.07f)
+        )
+
+        // 6. Detailed Anime Eyes with Irises & Catchlight Sparkles
         val eyeColor = when (companion.id) {
             "aoi" -> Color(0xFFD81B60)
             "sora" -> Color(0xFF00838F)
@@ -153,53 +202,72 @@ fun CompanionAvatarCanvas(
         }
 
         if (expression == "WINK") {
-            // Left eye open, right eye closed curve
+            // Left eye open
+            drawCircle(Color.White, width * 0.055f, Offset(centerX - width * 0.1f, centerY - height * 0.02f))
             drawCircle(eyeColor, width * 0.045f, Offset(centerX - width * 0.1f, centerY - height * 0.02f))
+            drawCircle(Color.Black, width * 0.02f, Offset(centerX - width * 0.1f, centerY - height * 0.02f))
+            drawCircle(Color.White, width * 0.015f, Offset(centerX - width * 0.115f, centerY - height * 0.035f))
+
+            // Right winking eye arc with eyelashes
             drawArc(
                 color = Color.Black,
                 startAngle = 180f,
                 sweepAngle = 180f,
                 useCenter = false,
-                topLeft = Offset(centerX + width * 0.06f, centerY - height * 0.04f),
-                size = Size(width * 0.08f, height * 0.06f),
-                style = Stroke(width = 4f)
+                topLeft = Offset(centerX + width * 0.05f, centerY - height * 0.05f),
+                size = Size(width * 0.1f, height * 0.07f),
+                style = Stroke(width = 4.5f, cap = StrokeCap.Round)
             )
         } else {
-            // Both eyes
-            val eyeSize = if (expression == "SURPRISED") width * 0.06f else width * 0.045f
+            // Both eyes open with depth and highlights
+            val eyeSize = if (expression == "SURPRISED") width * 0.065f else width * 0.05f
+            
+            // Left Eye
+            drawCircle(Color.White, eyeSize * 1.15f, Offset(centerX - width * 0.1f, centerY - height * 0.02f))
             drawCircle(eyeColor, eyeSize, Offset(centerX - width * 0.1f, centerY - height * 0.02f))
+            drawCircle(Color.Black, eyeSize * 0.45f, Offset(centerX - width * 0.1f, centerY - height * 0.02f))
+            drawCircle(Color.White, eyeSize * 0.35f, Offset(centerX - width * 0.115f, centerY - height * 0.035f))
+            drawCircle(Color.White, eyeSize * 0.15f, Offset(centerX - width * 0.085f, centerY - height * 0.005f))
+
+            // Right Eye
+            drawCircle(Color.White, eyeSize * 1.15f, Offset(centerX + width * 0.1f, centerY - height * 0.02f))
             drawCircle(eyeColor, eyeSize, Offset(centerX + width * 0.1f, centerY - height * 0.02f))
-            drawCircle(Color.White, eyeSize * 0.4f, Offset(centerX - width * 0.11f, centerY - height * 0.035f))
-            drawCircle(Color.White, eyeSize * 0.4f, Offset(centerX + width * 0.09f, centerY - height * 0.035f))
+            drawCircle(Color.Black, eyeSize * 0.45f, Offset(centerX + width * 0.1f, centerY - height * 0.02f))
+            drawCircle(Color.White, eyeSize * 0.35f, Offset(centerX + width * 0.085f, centerY - height * 0.035f))
+            drawCircle(Color.White, eyeSize * 0.15f, Offset(centerX + width * 0.115f, centerY - height * 0.005f))
+
+            // Eyebrows
+            drawLine(Color(0xFF3E2723), Offset(centerX - width * 0.16f, centerY - height * 0.1f), Offset(centerX - width * 0.04f, centerY - height * 0.09f), strokeWidth = 3f, cap = StrokeCap.Round)
+            drawLine(Color(0xFF3E2723), Offset(centerX + width * 0.04f, centerY - height * 0.09f), Offset(centerX + width * 0.16f, centerY - height * 0.1f), strokeWidth = 3f, cap = StrokeCap.Round)
         }
 
-        // Mouth
+        // 7. Mouth Expression
         when (expression) {
             "SURPRISED" -> {
-                drawCircle(Color(0xFFD32F2F), width * 0.04f, Offset(centerX, centerY + height * 0.12f))
+                drawCircle(Color(0xFFB71C1C), width * 0.045f, Offset(centerX, centerY + height * 0.12f))
+                drawCircle(Color(0xFFD32F2F), width * 0.03f, Offset(centerX, centerY + height * 0.12f))
             }
             "EXCITED" -> {
                 val mouthPath = Path().apply {
-                    moveTo(centerX - width * 0.08f, centerY + height * 0.1f)
-                    quadraticTo(centerX, centerY + height * 0.2f, centerX + width * 0.08f, centerY + height * 0.1f)
+                    moveTo(centerX - width * 0.09f, centerY + height * 0.09f)
+                    quadraticTo(centerX, centerY + height * 0.22f, centerX + width * 0.09f, centerY + height * 0.09f)
                     close()
                 }
-                drawPath(mouthPath, Color(0xFFD32F2F))
+                drawPath(mouthPath, Color(0xFFB71C1C))
             }
-            else -> { // HAPPY
+            else -> { // HAPPY / Default
                 drawArc(
-                    color = Color.Black,
+                    color = Color(0xFFB71C1C),
                     startAngle = 0f,
                     sweepAngle = 180f,
-                    useCenter = false,
-                    topLeft = Offset(centerX - width * 0.06f, centerY + height * 0.08f),
-                    size = Size(width * 0.12f, height * 0.08f),
-                    style = Stroke(width = 4f)
+                    useCenter = true,
+                    topLeft = Offset(centerX - width * 0.07f, centerY + height * 0.08f),
+                    size = Size(width * 0.14f, height * 0.08f)
                 )
             }
         }
 
-        // Hair Bangs Front
+        // 8. Front Hair Bangs with Shading & Highlights
         val bangColor = when (companion.id) {
             "aoi" -> Color(0xFFFF4081)
             "sora" -> Color(0xFF00E5FF)
@@ -207,24 +275,43 @@ fun CompanionAvatarCanvas(
             else -> Color(0xFF7C4DFF)
         }
         val bangsPath = Path().apply {
-            moveTo(centerX - faceRadius, centerY - height * 0.08f)
-            quadraticTo(centerX - width * 0.1f, centerY - height * 0.02f, centerX, centerY - height * 0.16f)
-            quadraticTo(centerX + width * 0.1f, centerY - height * 0.02f, centerX + faceRadius, centerY - height * 0.08f)
-            quadraticTo(centerX, centerY - height * 0.38f, centerX - faceRadius, centerY - height * 0.08f)
+            moveTo(centerX - faceRadius * 1.05f, centerY - height * 0.06f)
+            quadraticTo(centerX - width * 0.12f, centerY - height * 0.01f, centerX, centerY - height * 0.18f)
+            quadraticTo(centerX + width * 0.12f, centerY - height * 0.01f, centerX + faceRadius * 1.05f, centerY - height * 0.06f)
+            quadraticTo(centerX, centerY - height * 0.42f, centerX - faceRadius * 1.05f, centerY - height * 0.06f)
             close()
         }
         drawPath(bangsPath, bangColor)
 
-        // Accent hair ribbon or bow
-        drawCircle(accentColor, width * 0.05f, Offset(centerX - width * 0.22f, centerY - height * 0.22f))
-        drawCircle(accentColor, width * 0.05f, Offset(centerX + width * 0.22f, centerY - height * 0.22f))
+        // Hair shine highlight arc
+        drawArc(
+            color = Color.White.copy(alpha = 0.4f),
+            startAngle = 200f,
+            sweepAngle = 140f,
+            useCenter = false,
+            topLeft = Offset(centerX - width * 0.2f, centerY - height * 0.35f),
+            size = Size(width * 0.4f, height * 0.25f),
+            style = Stroke(width = 4f, cap = StrokeCap.Round)
+        )
 
-        // Outer Border
+        // 9. Hair Accessory / Ribbon
+        drawCircle(accentColor, width * 0.065f, Offset(centerX - width * 0.24f, centerY - height * 0.24f))
+        drawCircle(Color.White, width * 0.025f, Offset(centerX - width * 0.24f, centerY - height * 0.24f))
+        drawCircle(accentColor, width * 0.065f, Offset(centerX + width * 0.24f, centerY - height * 0.24f))
+        drawCircle(Color.White, width * 0.025f, Offset(centerX + width * 0.24f, centerY - height * 0.24f))
+
+        // 10. Polished Outer Badge Ring
         drawCircle(
             color = accentColor,
-            radius = width * 0.44f,
+            radius = width * 0.45f,
             center = Offset(centerX, centerY),
-            style = Stroke(width = 6f)
+            style = Stroke(width = 6.5f)
+        )
+        drawCircle(
+            color = Color.White.copy(alpha = 0.6f),
+            radius = width * 0.42f,
+            center = Offset(centerX, centerY),
+            style = Stroke(width = 2f)
         )
     }
 }
@@ -592,71 +679,161 @@ fun CarCanvas(
         withTransform({
             rotate(degrees = driftAngle, pivot = Offset(w / 2f, h / 2f))
         }) {
-            // Tire Skid Marks / Tire Smoke
-            if (kotlin.math.abs(driftAngle) > 10f) {
-                drawCircle(Color.LightGray.copy(alpha = 0.5f), w * 0.18f, Offset(w * 0.15f, h * 0.85f))
-                drawCircle(Color.LightGray.copy(alpha = 0.5f), w * 0.18f, Offset(w * 0.85f, h * 0.85f))
+            // 1. Tire Skid Marks & Smoke Clouds during Drifting
+            if (kotlin.math.abs(driftAngle) > 8f) {
+                drawCircle(Color.White.copy(alpha = 0.45f), w * 0.22f, Offset(w * 0.12f, h * 0.88f))
+                drawCircle(Color.LightGray.copy(alpha = 0.35f), w * 0.28f, Offset(w * 0.88f, h * 0.88f))
+                drawLine(Color.DarkGray.copy(alpha = 0.7f), Offset(w * 0.15f, h * 0.75f), Offset(w * 0.08f, h * 0.98f), strokeWidth = 8f, cap = StrokeCap.Round)
+                drawLine(Color.DarkGray.copy(alpha = 0.7f), Offset(w * 0.85f, h * 0.75f), Offset(w * 0.92f, h * 0.98f), strokeWidth = 8f, cap = StrokeCap.Round)
             }
 
-            // Nitro Tail Flames
+            // 2. Nitro Flames & Glowing Exhaust Burst
             if (isNitroActive) {
-                val flamePath = Path().apply {
-                    moveTo(w * 0.35f, h * 0.9f)
-                    lineTo(w * 0.5f, h * 1.25f)
-                    lineTo(w * 0.65f, h * 0.9f)
+                val flamePathOuter = Path().apply {
+                    moveTo(w * 0.32f, h * 0.92f)
+                    lineTo(w * 0.5f, h * 1.35f)
+                    lineTo(w * 0.68f, h * 0.92f)
                     close()
                 }
-                drawPath(flamePath, Color(0xFF00E5FF)) // Nitro Cyan Flame
-                drawPath(flamePath, Color.White)
+                drawPath(flamePathOuter, Color(0xFF00E5FF).copy(alpha = 0.85f))
+                val flamePathInner = Path().apply {
+                    moveTo(w * 0.4f, h * 0.92f)
+                    lineTo(w * 0.5f, h * 1.2f)
+                    lineTo(w * 0.6f, h * 0.92f)
+                    close()
+                }
+                drawPath(flamePathInner, Color.White)
+                drawCircle(Color(0xFF76FF03), w * 0.04f, Offset(w * 0.35f, h * 1.2f))
+                drawCircle(Color(0xFFFFD700), w * 0.04f, Offset(w * 0.65f, h * 1.22f))
             }
 
-            // Wheels
-            val wheelColor = Color(0xFF212121)
-            drawRoundRect(wheelColor, Offset(w * 0.08f, h * 0.18f), Size(w * 0.14f, h * 0.22f), CornerRadius(8f, 8f))
-            drawRoundRect(wheelColor, Offset(w * 0.78f, h * 0.18f), Size(w * 0.14f, h * 0.22f), CornerRadius(8f, 8f))
-            drawRoundRect(wheelColor, Offset(w * 0.08f, h * 0.62f), Size(w * 0.14f, h * 0.22f), CornerRadius(8f, 8f))
-            drawRoundRect(wheelColor, Offset(w * 0.78f, h * 0.62f), Size(w * 0.14f, h * 0.22f), CornerRadius(8f, 8f))
+            // 3. Neon Underglow
+            drawRoundRect(
+                bodyColor.copy(alpha = 0.4f),
+                topLeft = Offset(w * 0.15f, h * 0.18f),
+                size = Size(w * 0.7f, h * 0.68f),
+                cornerRadius = CornerRadius(24f, 24f)
+            )
 
-            // Main Car Chassis
+            // 4. Wheels with Alloy Spokes & Brake Calipers
+            val tireColor = Color(0xFF111111)
+            val rimColor = Color(0xFFE0E0E0)
+            val caliperColor = Color(0xFFFF3D00)
+
+            val wheelOffsets = listOf(
+                Offset(w * 0.06f, h * 0.18f), // Front Left
+                Offset(w * 0.78f, h * 0.18f), // Front Right
+                Offset(w * 0.06f, h * 0.62f), // Rear Left
+                Offset(w * 0.78f, h * 0.62f)  // Rear Right
+            )
+
+            wheelOffsets.forEach { offset ->
+                drawRoundRect(tireColor, offset, Size(w * 0.16f, h * 0.24f), CornerRadius(10f, 10f))
+                drawCircle(rimColor, w * 0.06f, Offset(offset.x + w * 0.08f, offset.y + h * 0.12f))
+                drawCircle(Color.Black, w * 0.025f, Offset(offset.x + w * 0.08f, offset.y + h * 0.12f))
+                drawCircle(caliperColor, w * 0.02f, Offset(offset.x + w * 0.08f, offset.y + h * 0.06f))
+            }
+
+            // 5. Main Car Chassis Body Path with Aerodynamic Curves
             val carBodyPath = Path().apply {
-                moveTo(w * 0.25f, h * 0.12f) // Nose
-                lineTo(w * 0.75f, h * 0.12f)
-                lineTo(w * 0.88f, h * 0.38f) // Hood to cabin
-                lineTo(w * 0.88f, h * 0.82f) // Side to tail
-                lineTo(w * 0.72f, h * 0.9f)  // Rear bumper
-                lineTo(w * 0.28f, h * 0.9f)
-                lineTo(w * 0.12f, h * 0.82f)
-                lineTo(w * 0.12f, h * 0.38f)
+                moveTo(w * 0.28f, h * 0.1f)  // Nose tip
+                lineTo(w * 0.72f, h * 0.1f)
+                quadraticTo(w * 0.8f, h * 0.2f, w * 0.86f, h * 0.35f)
+                lineTo(w * 0.88f, h * 0.78f)
+                quadraticTo(w * 0.85f, h * 0.9f, w * 0.72f, h * 0.92f)
+                lineTo(w * 0.28f, h * 0.92f)
+                quadraticTo(w * 0.15f, h * 0.9f, w * 0.12f, h * 0.78f)
+                lineTo(w * 0.14f, h * 0.35f)
+                quadraticTo(w * 0.2f, h * 0.2f, w * 0.28f, h * 0.1f)
                 close()
             }
             drawPath(carBodyPath, bodyColor)
 
-            // Roof & Windshield
-            drawRoundRect(
-                Color(0xFF101010),
-                topLeft = Offset(w * 0.22f, h * 0.35f),
-                size = Size(w * 0.56f, h * 0.32f),
-                cornerRadius = CornerRadius(16f, 16f)
+            // Body Metallic Shading / Gradient Highlight
+            drawRect(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Color.White.copy(alpha = 0.25f), Color.Transparent, Color.Black.copy(alpha = 0.3f)),
+                    startY = h * 0.15f,
+                    endY = h * 0.85f
+                ),
+                topLeft = Offset(w * 0.15f, h * 0.15f),
+                size = Size(w * 0.7f, h * 0.72f)
             )
 
-            // Front Windshield Glass
+            // 6. Cabin Roof & Glass
             drawRoundRect(
-                Color(0xFF81D4FA).copy(alpha = 0.8f),
-                topLeft = Offset(w * 0.26f, h * 0.37f),
-                size = Size(w * 0.48f, h * 0.14f),
+                Color(0xFF181818),
+                topLeft = Offset(w * 0.24f, h * 0.33f),
+                size = Size(w * 0.52f, h * 0.35f),
+                cornerRadius = CornerRadius(18f, 18f)
+            )
+
+            // Front Windshield Glass (Cyan Gradient)
+            drawRoundRect(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Color(0xFF81D4FA).copy(alpha = 0.9f), Color(0xFF00ACC1).copy(alpha = 0.7f))
+                ),
+                topLeft = Offset(w * 0.27f, h * 0.35f),
+                size = Size(w * 0.46f, h * 0.15f),
                 cornerRadius = CornerRadius(12f, 12f)
             )
 
-            // Headlights
-            drawCircle(Color(0xFFFFF59D), w * 0.08f, Offset(w * 0.22f, h * 0.14f))
-            drawCircle(Color(0xFFFFF59D), w * 0.08f, Offset(w * 0.78f, h * 0.14f))
+            // Rear Window Glass
+            drawRoundRect(
+                Color(0xFF263238).copy(alpha = 0.8f),
+                topLeft = Offset(w * 0.28f, h * 0.53f),
+                size = Size(w * 0.44f, h * 0.12f),
+                cornerRadius = CornerRadius(8f, 8f)
+            )
 
-            // Rear Spoiler
+            // 7. Headlights with Glow & Light Beams
+            drawCircle(Color(0xFFFFF59D), w * 0.07f, Offset(w * 0.22f, h * 0.13f))
+            drawCircle(Color.White, w * 0.035f, Offset(w * 0.22f, h * 0.13f))
+            drawCircle(Color(0xFFFFF59D), w * 0.07f, Offset(w * 0.78f, h * 0.13f))
+            drawCircle(Color.White, w * 0.035f, Offset(w * 0.78f, h * 0.13f))
+
+            val beamPathLeft = Path().apply {
+                moveTo(w * 0.22f, h * 0.13f)
+                lineTo(w * 0.05f, h * -0.1f)
+                lineTo(w * 0.3f, h * 0.05f)
+                close()
+            }
+            drawPath(beamPathLeft, Color(0xFFFFF59D).copy(alpha = 0.15f))
+
+            val beamPathRight = Path().apply {
+                moveTo(w * 0.78f, h * 0.13f)
+                lineTo(w * 0.95f, h * -0.1f)
+                lineTo(w * 0.7f, h * 0.05f)
+                close()
+            }
+            drawPath(beamPathRight, Color(0xFFFFF59D).copy(alpha = 0.15f))
+
+            // 8. Rear LED Taillights & Dual Exhaust Pipes
+            drawRoundRect(
+                Color(0xFFFF1744),
+                topLeft = Offset(w * 0.2f, h * 0.9f),
+                size = Size(w * 0.6f, h * 0.03f),
+                cornerRadius = CornerRadius(4f, 4f)
+            )
+            drawCircle(Color(0xFF37474F), w * 0.045f, Offset(w * 0.38f, h * 0.93f))
+            drawCircle(Color(0xFF37474F), w * 0.045f, Offset(w * 0.62f, h * 0.93f))
+
+            // 9. Multi-Element GT Rear Spoiler (Carbon Fiber Look)
             drawRoundRect(
                 Color(0xFF212121),
-                topLeft = Offset(w * 0.15f, h * 0.86f),
-                size = Size(w * 0.7f, h * 0.05f),
-                cornerRadius = CornerRadius(4f, 4f)
+                topLeft = Offset(w * 0.16f, h * 0.88f),
+                size = Size(w * 0.68f, h * 0.06f),
+                cornerRadius = CornerRadius(6f, 6f)
+            )
+            drawRect(
+                Color(0xFF424242),
+                topLeft = Offset(w * 0.32f, h * 0.86f),
+                size = Size(w * 0.06f, h * 0.04f)
+            )
+            drawRect(
+                Color(0xFF424242),
+                topLeft = Offset(w * 0.62f, h * 0.86f),
+                size = Size(w * 0.06f, h * 0.04f)
             )
         }
     }
