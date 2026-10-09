@@ -236,6 +236,8 @@ fun ArcadeTrackCanvas(
     cornerDistance: Float,
     cornerDirection: com.driftgirls.model.CornerDirection = com.driftgirls.model.CornerDirection.RIGHT,
     isNitroActive: Boolean,
+    isLastDrift: Boolean = false,
+    distanceTravelled: Float = 0f,
     modifier: Modifier = Modifier.fillMaxSize()
 ) {
     Canvas(modifier = modifier) {
@@ -336,24 +338,24 @@ fun ArcadeTrackCanvas(
         // Road Asphalt Color
         drawPath(roadPath, Color(0xFF1D1E22))
 
-        // Render Glowing Neon Yellow Drift Zone on the road surface synchronized with the CAR (v = 0.70)
+        // Render Glowing Neon Drift Zone on the road surface synchronized with the CAR (v = 0.70)
         val carV = 0.70f // The position of the car on the perspective track
         val isYellowZoneActive = isInsideCorner || cornerDistance < 180f
         if (isYellowZoneActive) {
             val entryV = if (isInsideCorner) 1.0f else (((180f - cornerDistance) / 180f).coerceIn(0f, 1f) * carV)
             val exitV = if (isInsideCorner) (cornerProgress.coerceIn(0f, 1f) * carV) else 0.0f
 
-            val yellowPath = Path()
+            val zonePath = Path()
             var startedPath = false
 
             for (i in 0..numSlices) {
                 val v = i / numSlices.toFloat()
                 if (v in exitV..entryV) {
                     if (!startedPath) {
-                        yellowPath.moveTo(slicePointsLeft[i].x, slicePointsLeft[i].y)
+                        zonePath.moveTo(slicePointsLeft[i].x, slicePointsLeft[i].y)
                         startedPath = true
                     } else {
-                        yellowPath.lineTo(slicePointsLeft[i].x, slicePointsLeft[i].y)
+                        zonePath.lineTo(slicePointsLeft[i].x, slicePointsLeft[i].y)
                     }
                 }
             }
@@ -362,13 +364,22 @@ fun ArcadeTrackCanvas(
                 for (i in numSlices downTo 0) {
                     val v = i / numSlices.toFloat()
                     if (v in exitV..entryV) {
-                        yellowPath.lineTo(slicePointsRight[i].x, slicePointsRight[i].y)
+                        zonePath.lineTo(slicePointsRight[i].x, slicePointsRight[i].y)
                     }
                 }
-                yellowPath.close()
+                zonePath.close()
 
-                // Draw Glowing Neon Yellow Road Overlay
-                drawPath(yellowPath, Color(0xFFFFD600).copy(alpha = 0.65f))
+                // Draw Glowing Neon Road Overlay (Vibrant Neon Red for entire section of last drift, Yellow otherwise)
+                val zoneColor = if (isLastDrift) Color(0xFFFF1744) else Color(0xFFFFD600)
+                val zoneAlpha = if (isLastDrift) 0.85f else 0.65f
+
+                drawPath(zonePath, zoneColor.copy(alpha = zoneAlpha))
+                // Draw vibrant stroke outline so the last drift red zone pops brightly against asphalt
+                drawPath(
+                    path = zonePath,
+                    color = if (isLastDrift) Color(0xFFFF1744) else Color.White.copy(alpha = 0.5f),
+                    style = Stroke(width = if (isLastDrift) 5f else 2f)
+                )
             }
         }
 
@@ -406,22 +417,38 @@ fun ArcadeTrackCanvas(
         drawPath(leftCurbPath, Color(0xFFFF1744)) // Red Curb
         drawPath(rightCurbPath, Color(0xFFFF1744))
 
-        // Center Animated Dash Lines
-        for (i in 0..numSlices step 3) {
-            val ptL = slicePointsLeft[i]
-            val ptR = slicePointsRight[i]
-            val centerX = (ptL.x + ptR.x) / 2f
-            val v = i / numSlices.toFloat()
+        // Center Animated Dash Lines (Scrolling smoothly with distanceTravelled)
+        val dashStep = 0.15f
+        val offsetV = (distanceTravelled * 0.02f) % dashStep
+        var vDash = -dashStep + offsetV
 
-            val lineWidth = 4f + (v * 18f)
-            val lineHeight = 8f + (v * 30f)
+        while (vDash <= 1.0f) {
+            if (vDash in 0.01f..0.98f) {
+                val sliceFloat = vDash * numSlices
+                val idx = sliceFloat.toInt().coerceIn(0, numSlices - 1)
+                val frac = sliceFloat - idx
 
-            drawRoundRect(
-                color = Color(0xFFFFD600), // Neon Yellow
-                topLeft = Offset(centerX - (lineWidth / 2f), ptL.y),
-                size = Size(lineWidth, lineHeight),
-                cornerRadius = CornerRadius(4f, 4f)
-            )
+                val ptL1 = slicePointsLeft[idx]
+                val ptL2 = slicePointsLeft[(idx + 1).coerceAtMost(numSlices)]
+                val ptR1 = slicePointsRight[idx]
+                val ptR2 = slicePointsRight[(idx + 1).coerceAtMost(numSlices)]
+
+                val y = ptL1.y + (ptL2.y - ptL1.y) * frac
+                val xL = ptL1.x + (ptL2.x - ptL1.x) * frac
+                val xR = ptR1.x + (ptR2.x - ptR1.x) * frac
+                val centerX = (xL + xR) / 2f
+
+                val lineWidth = 4f + (vDash * 18f)
+                val lineHeight = 8f + (vDash * 30f)
+
+                drawRoundRect(
+                    color = Color(0xFFFFD600), // Neon Yellow
+                    topLeft = Offset(centerX - (lineWidth / 2f), y),
+                    size = Size(lineWidth, lineHeight),
+                    cornerRadius = CornerRadius(4f, 4f)
+                )
+            }
+            vDash += dashStep
         }
 
         // Speed Blur Lines during Nitro

@@ -244,7 +244,7 @@ class ActiveRaceState(
     val car: Car,
     val companion: GirlCompanion?,
     initialRacePhase: RacePhase = RacePhase.COUNTDOWN,
-    initialCountdownTimer: Float = 5.0f,
+    initialCountdownTimer: Float = 3.0f,
     initialEngineRpm: Float = 1000f,
     initialCurrentSpeed: Float = 0f,
     initialNextCornerDistance: Float = 220f,
@@ -287,6 +287,10 @@ class ActiveRaceState(
     var earnedAffection by mutableStateOf(0)
     var timeRemainingSeconds by mutableStateOf<Float?>(track.timeLimitSeconds)
     var newlyDiscoveredCompanion by mutableStateOf<GirlCompanion?>(null)
+    var finishStraightTargetDistance by mutableStateOf<Float?>(null)
+
+    val isLastCorner: Boolean
+        get() = !track.isEndless && currentCornerIndex == track.cornersCount - 1
 }
 
 class GameEngine {
@@ -473,7 +477,7 @@ class GameEngine {
             car = car,
             companion = companion,
             initialRacePhase = RacePhase.COUNTDOWN,
-            initialCountdownTimer = 5.0f,
+            initialCountdownTimer = 3.0f,
             initialEngineRpm = 1000f,
             initialCurrentSpeed = 0f,
             initialNextCornerDistance = 220f,
@@ -587,9 +591,19 @@ class GameEngine {
 
                 race.isInsideCorner = false
                 race.currentCornerIndex++
-                race.nextCornerDistance = 160f + (kotlin.random.Random.nextFloat() * 100f)
-                race.currentCornerDirection = CornerDirection.entries.random()
-                race.currentCornerLength = CornerLength.entries.random()
+
+                if (!race.track.isEndless && race.currentCornerIndex >= race.track.cornersCount) {
+                    // Do NOT generate any more corners after the last corner!
+                    race.nextCornerDistance = 999999f
+                    race.finishStraightTargetDistance = maxOf(
+                        race.track.distanceMeters.toFloat(),
+                        race.distanceTravelled + 150f
+                    )
+                } else {
+                    race.nextCornerDistance = 160f + (kotlin.random.Random.nextFloat() * 100f)
+                    race.currentCornerDirection = CornerDirection.entries.random()
+                    race.currentCornerLength = CornerLength.entries.random()
+                }
 
                 // Reset drift attempt flags for the next corner
                 race.cornerProgress = 0f
@@ -635,8 +649,14 @@ class GameEngine {
         }
 
         // Race Finish Check (for distance-based non-endless tracks)
-        if (!race.track.isEndless && race.distanceTravelled >= race.track.distanceMeters) {
-            finishRace()
+        if (!race.track.isEndless) {
+            val isAllCornersDone = race.currentCornerIndex >= race.track.cornersCount
+            val targetDist = race.finishStraightTargetDistance ?: race.track.distanceMeters.toFloat()
+            val isTargetReached = race.distanceTravelled >= targetDist
+
+            if (isAllCornersDone && !race.isInsideCorner && isTargetReached) {
+                finishRace()
+            }
         }
     }
 

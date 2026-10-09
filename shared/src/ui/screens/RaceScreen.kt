@@ -84,12 +84,15 @@ fun RaceScreen(
         val isLandscape = maxWidth > maxHeight
 
         // 1. Arcade Track Canvas View
+        val isLastDrift = race.isLastCorner
         ArcadeTrackCanvas(
             cornerProgress = race.cornerProgress,
             isInsideCorner = race.isInsideCorner,
             cornerDistance = race.nextCornerDistance,
             cornerDirection = race.currentCornerDirection,
-            isNitroActive = race.isNitroActive
+            isNitroActive = race.isNitroActive,
+            isLastDrift = isLastDrift,
+            distanceTravelled = race.distanceTravelled
         )
 
         // 2. Car Canvas View
@@ -323,14 +326,10 @@ fun RaceScreen(
                     .padding(bottom = if (isLandscape) 10.dp else 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val countdownText = if (race.countdownTimer > 0.8f) {
-                    "${race.countdownTimer.toInt()}"
-                } else {
-                    "GO!!"
-                }
+                val countdownInt = kotlin.math.ceil(race.countdownTimer).toInt().coerceAtLeast(1)
 
                 Text(
-                    text = countdownText,
+                    text = "$countdownInt",
                     color = Color(0xFFFFD600),
                     fontSize = if (isLandscape) 48.sp else 68.sp,
                     fontWeight = FontWeight.Black
