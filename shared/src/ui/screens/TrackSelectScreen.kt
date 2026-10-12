@@ -196,13 +196,20 @@ fun TrackSelectScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Rewards
+                        // Rewards or High Score
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(stringResource(Res.string.rewards_label), color = subTextColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("+$${track.rewardCash}", color = Color(0xFF76FF03), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text("+${track.rewardGems} 💎", color = Color(0xFF00E5FF), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            if (track.isEndless) {
+                                val highScore = gameEngine.getHighestEndlessScore()
+                                Text(stringResource(Res.string.rewards_label), color = subTextColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("👑 $highScore PTS", color = Color(0xFFFFD600), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            } else {
+                                Text(stringResource(Res.string.rewards_label), color = subTextColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("+$${track.rewardCash}", color = Color(0xFF76FF03), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text("+${track.rewardGems} 💎", color = Color(0xFF00E5FF), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(14.dp))

@@ -704,23 +704,30 @@ fun RaceScreen(
                             }
                         }
 
-                        // Rewards
+                        // Rewards / Drift Score
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(stringResource(Res.string.cash_label), color = subTextColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                Text("+$${race.earnedCash}", color = Color(0xFF76FF03), fontSize = 16.sp, fontWeight = FontWeight.Black)
-                            }
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(stringResource(Res.string.gems_label), color = subTextColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                Text("+${race.earnedGems} 💎", color = Color(0xFF00E5FF), fontSize = 16.sp, fontWeight = FontWeight.Black)
-                            }
-                            if (race.companion != null) {
+                            if (race.track.isEndless) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(stringResource(Res.string.affection_label), color = subTextColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                    Text("+${race.earnedAffection} 💕", color = Color(0xFFFF4081), fontSize = 16.sp, fontWeight = FontWeight.Black)
+                                    Text(stringResource(Res.string.drift_score_label), color = subTextColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    Text("${race.driftScore} PTS", color = Color(0xFFFF4081), fontSize = 18.sp, fontWeight = FontWeight.Black)
+                                }
+                            } else {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(stringResource(Res.string.cash_label), color = subTextColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    Text("+$${race.earnedCash}", color = Color(0xFF76FF03), fontSize = 16.sp, fontWeight = FontWeight.Black)
+                                }
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(stringResource(Res.string.gems_label), color = subTextColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    Text("+${race.earnedGems} 💎", color = Color(0xFF00E5FF), fontSize = 16.sp, fontWeight = FontWeight.Black)
+                                }
+                                if (race.companion != null) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(stringResource(Res.string.affection_label), color = subTextColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        Text("+${race.earnedAffection} 💕", color = Color(0xFFFF4081), fontSize = 16.sp, fontWeight = FontWeight.Black)
+                                    }
                                 }
                             }
                         }

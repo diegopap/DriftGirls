@@ -197,8 +197,8 @@ object GameDataDefaults {
             difficulty = "Endless (60s)",
             distanceMeters = 999999,
             cornersCount = 99,
-            rewardCash = 10000,
-            rewardGems = 100,
+            rewardCash = 0,
+            rewardGems = 0,
             primaryColorHex = 0xFFFFD700, // Gold
             isEndless = true,
             timeLimitSeconds = 60f
@@ -907,9 +907,9 @@ class GameEngine {
         }
         race.starsEarned = stars
 
-        val rewardCash = race.track.rewardCash + (race.driftScore / 10)
-        val rewardGems = race.track.rewardGems + (stars * 5)
-        val affectionGain = if (race.companion != null) 8 + (stars * 4) else 0
+        val rewardCash = if (race.track.isEndless) 0 else race.track.rewardCash + (race.driftScore / 10)
+        val rewardGems = if (race.track.isEndless) 0 else race.track.rewardGems + (stars * 5)
+        val affectionGain = if (race.companion != null && !race.track.isEndless) 8 + (stars * 4) else 0
 
         race.earnedCash = rewardCash
         race.earnedGems = rewardGems
