@@ -108,4 +108,7 @@
     <string name="settings_theme_system">📱 Por defecto del sistema</string>
     <string name="settings_theme_dark">🌙 Modo Oscuro</string>
     <string name="settings_theme_light">☀️ Modo Claro</string>
+
+    <string name="btn_resume">REANUDAR ▶️</string>
+    <string name="btn_restart">REINICIAR 🔄</string>
 </resources>

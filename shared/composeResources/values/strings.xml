@@ -108,4 +108,7 @@
     <string name="settings_theme_system">📱 System Default</string>
     <string name="settings_theme_dark">🌙 Dark Mode</string>
     <string name="settings_theme_light">☀️ Light Mode</string>
+
+    <string name="btn_resume">RESUME ▶️</string>
+    <string name="btn_restart">RESTART 🔄</string>
 </resources>

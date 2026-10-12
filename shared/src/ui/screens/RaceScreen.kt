@@ -28,7 +28,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,7 +46,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import com.driftgirls.PlatformBackHandler
 import com.driftgirls.engine.GameEngine
+import com.driftgirls.i18n.AppSettings
+import com.driftgirls.i18n.LanguageSetting
+import com.driftgirls.i18n.ThemeSetting
 import com.driftgirls.i18n.localizedTitle
 import com.driftgirls.model.RacePhase
 import com.driftgirls.resources.*
@@ -74,6 +86,11 @@ fun RaceScreen(
     var showTutorial by remember {
         mutableStateOf(race.track.isTutorial && !gameEngine.saveData.completedTutorial)
     }
+    var showSettings by remember { mutableStateOf(false) }
+
+    PlatformBackHandler(enabled = !race.isFinished) {
+        showSettings = !showSettings
+    }
 
     // Smooth Game Engine Update Loop
     LaunchedEffect(Unit) {
@@ -82,7 +99,7 @@ fun RaceScreen(
             withFrameNanos { frameTimeNanos ->
                 if (lastFrameTimeNanos != 0L) {
                     val deltaTimeSeconds = ((frameTimeNanos - lastFrameTimeNanos).toFloat() / 1_000_000_000f).coerceIn(0.001f, 0.05f)
-                    if (!showTutorial) {
+                    if (!showTutorial && !showSettings && !race.isFinished) {
                         gameEngine.updateRace(deltaTimeSeconds)
                     }
                 }
@@ -166,29 +183,12 @@ fun RaceScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
-                var isMutedState by remember { mutableStateOf(com.driftgirls.isMusicMuted()) }
-                Surface(
-                    onClick = {
-                        val nextMuted = !isMutedState
-                        com.driftgirls.setMusicMuted(nextMuted)
-                        isMutedState = nextMuted
-                    },
-                    shape = RoundedCornerShape(8.dp),
-                    color = Color.White.copy(alpha = 0.2f)
-                ) {
-                    Text(
-                        text = if (isMutedState) "🔇" else "🎵",
-                        fontSize = 11.sp,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(6.dp))
                 Button(
-                    onClick = onBackToHome,
+                    onClick = { showSettings = true },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp)
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
                 ) {
-                    Text(stringResource(Res.string.exit), color = Color.White, fontSize = 10.sp)
+                    Text("⚙️", fontSize = 14.sp)
                 }
             }
 
@@ -792,6 +792,309 @@ fun RaceScreen(
                         }
                     }
                 }
+            }
+        }
+
+        // 10. Settings & Pause Overlay Dialog
+        if (showSettings) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.85f))
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth(if (isLandscape) 0.75f else 0.95f)
+                        .fillMaxHeight(if (isLandscape) 0.92f else 0.85f),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = cardBg),
+                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFFF007F).copy(alpha = 0.5f))
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                            .verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(Res.string.settings_title),
+                            color = titleColor,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Black
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // RESUME & RESTART buttons
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Button(
+                                onClick = { showSettings = false },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF007F))
+                            ) {
+                                Text(
+                                    text = stringResource(Res.string.btn_resume),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp
+                                )
+                            }
+
+                            Button(
+                                onClick = {
+                                    showSettings = false
+                                    gameEngine.startRace(race.track.id)
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD600))
+                            ) {
+                                Text(
+                                    text = stringResource(Res.string.btn_restart),
+                                    color = Color.Black,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // 1. Language Options
+                        RaceSettingsSectionCard(
+                            title = stringResource(Res.string.settings_language),
+                            isDark = isDarkTheme
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                RaceOptionTile(
+                                    label = stringResource(Res.string.settings_language_system),
+                                    isSelected = AppSettings.languageSetting == LanguageSetting.SYSTEM,
+                                    isDark = isDarkTheme,
+                                    onClick = { gameEngine.updateLanguageSetting(LanguageSetting.SYSTEM) }
+                                )
+                                RaceOptionTile(
+                                    label = stringResource(Res.string.settings_language_es),
+                                    isSelected = AppSettings.languageSetting == LanguageSetting.ES,
+                                    isDark = isDarkTheme,
+                                    onClick = { gameEngine.updateLanguageSetting(LanguageSetting.ES) }
+                                )
+                                RaceOptionTile(
+                                    label = stringResource(Res.string.settings_language_en),
+                                    isSelected = AppSettings.languageSetting == LanguageSetting.EN,
+                                    isDark = isDarkTheme,
+                                    onClick = { gameEngine.updateLanguageSetting(LanguageSetting.EN) }
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // 2. Music & Audio Options
+                        RaceSettingsSectionCard(
+                            title = stringResource(Res.string.settings_audio),
+                            isDark = isDarkTheme
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = if (AppSettings.isMuted) stringResource(Res.string.settings_music_muted) else stringResource(Res.string.settings_music_enabled),
+                                        color = textColor,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Switch(
+                                        checked = !AppSettings.isMuted,
+                                        onCheckedChange = { enabled ->
+                                            gameEngine.updateMuted(!enabled)
+                                        },
+                                        colors = SwitchDefaults.colors(
+                                            checkedThumbColor = Color.White,
+                                            checkedTrackColor = Color(0xFFFF007F)
+                                        )
+                                    )
+                                }
+
+                                if (!AppSettings.isMuted) {
+                                    Column {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = stringResource(Res.string.settings_music_volume),
+                                                color = subTextColor,
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = "${(AppSettings.musicVolume * 100).toInt()}%",
+                                                color = Color(0xFFFF007F),
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                        Slider(
+                                            value = AppSettings.musicVolume,
+                                            onValueChange = { vol ->
+                                                gameEngine.updateMusicVolume(vol)
+                                            },
+                                            valueRange = 0f..1f,
+                                            colors = SliderDefaults.colors(
+                                                thumbColor = Color(0xFFFF007F),
+                                                activeTrackColor = Color(0xFFFF007F)
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // 3. Display Theme Options
+                        RaceSettingsSectionCard(
+                            title = stringResource(Res.string.settings_theme),
+                            isDark = isDarkTheme
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                RaceOptionTile(
+                                    label = stringResource(Res.string.settings_theme_system),
+                                    isSelected = AppSettings.themeSetting == ThemeSetting.SYSTEM,
+                                    isDark = isDarkTheme,
+                                    onClick = { gameEngine.updateThemeSetting(ThemeSetting.SYSTEM) }
+                                )
+                                RaceOptionTile(
+                                    label = stringResource(Res.string.settings_theme_dark),
+                                    isSelected = AppSettings.themeSetting == ThemeSetting.DARK,
+                                    isDark = isDarkTheme,
+                                    onClick = { gameEngine.updateThemeSetting(ThemeSetting.DARK) }
+                                )
+                                RaceOptionTile(
+                                    label = stringResource(Res.string.settings_theme_light),
+                                    isSelected = AppSettings.themeSetting == ThemeSetting.LIGHT,
+                                    isDark = isDarkTheme,
+                                    onClick = { gameEngine.updateThemeSetting(ThemeSetting.LIGHT) }
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // 4. Navigation Actions (GARAGE & MAIN MENU)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            OutlinedButton(
+                                onClick = {
+                                    showSettings = false
+                                    onGoToGarage()
+                                },
+                                modifier = Modifier.weight(1f),
+                                border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFFF007F))
+                            ) {
+                                Text(
+                                    text = "🏎️ ${stringResource(Res.string.menu_garage)}",
+                                    color = textColor,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp
+                                )
+                            }
+
+                            OutlinedButton(
+                                onClick = {
+                                    showSettings = false
+                                    onBackToHome()
+                                },
+                                modifier = Modifier.weight(1f),
+                                border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFFF007F))
+                            ) {
+                                Text(
+                                    text = "🏠 ${stringResource(Res.string.game_menu)}",
+                                    color = textColor,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RaceSettingsSectionCard(
+    title: String,
+    isDark: Boolean,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val cardBg = if (isDark) Color(0xFF281340) else Color(0xFFF0E5FF)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF007F).copy(alpha = 0.3f))
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                text = title,
+                color = Color(0xFFFF007F),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Black
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            content()
+        }
+    }
+}
+
+@Composable
+private fun RaceOptionTile(
+    label: String,
+    isSelected: Boolean,
+    isDark: Boolean,
+    onClick: () -> Unit
+) {
+    val bg = if (isSelected) Color(0xFFFF007F) else if (isDark) Color(0xFF3B1C5C) else Color(0xFFFFFFFF)
+    val fg = if (isSelected) Color.White else if (isDark) Color.White else Color(0xFF1E0A2A)
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(bg)
+            .clickable { onClick() }
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = label,
+                color = fg,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+            if (isSelected) {
+                Text(
+                    text = "✓",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Black
+                )
             }
         }
     }
