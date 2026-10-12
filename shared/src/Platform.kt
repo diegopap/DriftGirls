@@ -17,6 +17,8 @@ expect fun playBackgroundMusic(musicTrack: String)
 expect fun stopBackgroundMusic()
 expect fun setMusicMuted(muted: Boolean)
 expect fun isMusicMuted(): Boolean
+expect fun setMusicVolume(volume: Float)
+expect fun getMusicVolume(): Float
 
 @Composable
 expect fun PlatformBackHandler(enabled: Boolean = true, onBack: () -> Unit)

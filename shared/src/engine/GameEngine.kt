@@ -421,6 +421,7 @@ class GameEngine {
                 AppSettings.musicVolume = musicVol
                 AppSettings.isMuted = isMuted
                 com.driftgirls.setMusicMuted(isMuted)
+                com.driftgirls.setMusicVolume(musicVol)
 
                 // Strictly sanitize unlocked tracks based on discovered companions
                 val sanitizedUnlockedTracks = mutableSetOf("track_tutorial")
@@ -1018,6 +1019,7 @@ class GameEngine {
         AppSettings.musicVolume = 1.0f
         AppSettings.isMuted = false
         com.driftgirls.setMusicMuted(false)
+        com.driftgirls.setMusicVolume(1.0f)
         persistSaveToDisk()
     }
 
@@ -1036,6 +1038,7 @@ class GameEngine {
     fun updateMusicVolume(volume: Float) {
         AppSettings.musicVolume = volume
         saveData = saveData.copy(musicVolume = volume)
+        com.driftgirls.setMusicVolume(volume)
         persistSaveToDisk()
     }
 

@@ -25,5 +25,9 @@ actual fun setMusicMuted(muted: Boolean) {}
 
 actual fun isMusicMuted(): Boolean = false
 
+actual fun setMusicVolume(volume: Float) {}
+
+actual fun getMusicVolume(): Float = 1.0f
+
 @Composable
 actual fun PlatformBackHandler(enabled: Boolean, onBack: () -> Unit) {}

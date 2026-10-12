@@ -58,6 +58,14 @@ actual fun isMusicMuted(): Boolean {
     return RetroMidiSynthesizer.isMuted()
 }
 
+actual fun setMusicVolume(volume: Float) {
+    RetroMidiSynthesizer.setVolume(volume)
+}
+
+actual fun getMusicVolume(): Float {
+    return RetroMidiSynthesizer.getVolume()
+}
+
 @Composable
 actual fun PlatformBackHandler(enabled: Boolean, onBack: () -> Unit) {
     BackHandler(enabled = enabled, onBack = onBack)
@@ -70,6 +78,8 @@ object RetroMidiSynthesizer {
     private var playbackThread: Thread? = null
     private var currentTrack: String = ""
     private var isMuted: Boolean = false
+    @Volatile
+    private var musicVolume: Float = 1.0f
 
     fun playTrack(trackName: String) {
         if (isPlaying && currentTrack == trackName && !isMuted) return
@@ -111,6 +121,25 @@ object RetroMidiSynthesizer {
 
     fun isMuted(): Boolean = isMuted
 
+    fun setVolume(vol: Float) {
+        val clampedVol = vol.coerceIn(0f, 1f)
+        musicVolume = clampedVol
+        try {
+            audioTrack?.let { track ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    track.setVolume(clampedVol)
+                } else {
+                    @Suppress("DEPRECATION")
+                    track.setStereoVolume(clampedVol, clampedVol)
+                }
+            }
+        } catch (e: Exception) {
+            // Fail-safe
+        }
+    }
+
+    fun getVolume(): Float = musicVolume
+
     private fun noteToFreq(midiNote: Int): Double {
         if (midiNote <= 0) return 0.0
         return 440.0 * Math.pow(2.0, (midiNote - 69) / 12.0)
@@ -135,6 +164,7 @@ object RetroMidiSynthesizer {
                 AudioTrack.MODE_STREAM
             )
             audioTrack = track
+            setVolume(musicVolume)
             track.play()
 
             val (bpm, leadNotes, bassNotes) = when (trackName) {
@@ -178,6 +208,7 @@ object RetroMidiSynthesizer {
             var phaseBass = 0.0
 
             while (isPlaying) {
+                val currentVol = musicVolume.coerceIn(0f, 1f)
                 for (i in 0 until pcmBuffer.size) {
                     val currentBeatIndex = (sampleCount / samplesPerBeat).toInt()
                     val leadNote = leadNotes[currentBeatIndex % leadNotes.size]
@@ -198,7 +229,7 @@ object RetroMidiSynthesizer {
                     val leadSquare = if (sin(phaseLead) > 0.0) 0.5 else -0.5
                     val bassTriangle = (2.0 / PI) * asin(sin(phaseBass))
 
-                    val mixed = (leadSquare * 0.45 + bassTriangle * 0.55) * 12000.0
+                    val mixed = (leadSquare * 0.45 + bassTriangle * 0.55) * 12000.0 * currentVol
                     pcmBuffer[i] = mixed.toInt().coerceIn(-32768, 32767).toShort()
 
                     sampleCount++
