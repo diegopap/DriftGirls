@@ -440,8 +440,8 @@ fun RaceScreen(
             Column(horizontalAlignment = Alignment.Start) {
                 Button(
                     onClick = { gameEngine.activateNitro() },
-                    modifier = Modifier.size(if (isLandscape) 95.dp else 110.dp, if (isLandscape) 46.dp else 56.dp),
-                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.size(if (isLandscape) 110.dp else 110.dp, if (isLandscape) 64.dp else 80.dp),
+                    shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (race.nitroLevel >= 25f) Color(0xFF00E5FF) else Color.Gray
                     ),
@@ -481,12 +481,12 @@ fun RaceScreen(
                 if (race.racePhase == RacePhase.COUNTDOWN) {
                     Box(
                         modifier = Modifier
-                            .size(if (isLandscape) 100.dp else 110.dp, if (isLandscape) 46.dp else 56.dp)
-                            .clip(RoundedCornerShape(16.dp))
+                            .size(if (isLandscape) 110.dp else 110.dp, if (isLandscape) 64.dp else 80.dp)
+                            .clip(RoundedCornerShape(20.dp))
                             .background(
                                 if (race.isAccelerating) Color(0xFF76FF03) else Color(0xFF00E5FF).copy(alpha = 0.85f)
                             )
-                            .border(2.5.dp, Color.White, RoundedCornerShape(16.dp))
+                            .border(2.5.dp, Color.White, RoundedCornerShape(20.dp))
                             .pointerInput(Unit) {
                                 awaitPointerEventScope {
                                     while (true) {
