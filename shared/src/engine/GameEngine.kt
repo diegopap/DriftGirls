@@ -417,6 +417,7 @@ class GameEngine {
                 val themeSetting = try { ThemeSetting.valueOf(themeSettingStr.uppercase()) } catch (e: Exception) { ThemeSetting.SYSTEM }
 
                 AppSettings.languageSetting = langSetting
+                com.driftgirls.applyLanguageSetting(langSetting)
                 AppSettings.themeSetting = themeSetting
                 AppSettings.musicVolume = musicVol
                 AppSettings.isMuted = isMuted
@@ -1015,6 +1016,7 @@ class GameEngine {
         cars = GameDataDefaults.initialCars
         companions = GameDataDefaults.initialCompanions
         AppSettings.languageSetting = LanguageSetting.SYSTEM
+        com.driftgirls.applyLanguageSetting(LanguageSetting.SYSTEM)
         AppSettings.themeSetting = ThemeSetting.SYSTEM
         AppSettings.musicVolume = 1.0f
         AppSettings.isMuted = false
@@ -1024,6 +1026,7 @@ class GameEngine {
     }
 
     fun updateLanguageSetting(setting: LanguageSetting) {
+        com.driftgirls.applyLanguageSetting(setting)
         AppSettings.languageSetting = setting
         saveData = saveData.copy(languageSetting = setting.name)
         persistSaveToDisk()

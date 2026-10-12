@@ -38,8 +38,53 @@ actual fun getFormattedCurrentDate(): String {
     return sdf.format(java.util.Date())
 }
 
+private var initialDefaultLocale: java.util.Locale? = null
+private var initialDefaultLocaleList: android.os.LocaleList? = null
+
 actual fun getSystemLanguageCode(): String {
-    return java.util.Locale.getDefault().language.lowercase()
+    val initial = initialDefaultLocale ?: java.util.Locale.getDefault()
+    return initial.language.lowercase()
+}
+
+actual fun applyLanguageSetting(setting: com.driftgirls.i18n.LanguageSetting) {
+    if (initialDefaultLocale == null) {
+        initialDefaultLocale = java.util.Locale.getDefault()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            initialDefaultLocaleList = android.os.LocaleList.getDefault()
+        }
+    }
+
+    val targetLocale = when (setting) {
+        com.driftgirls.i18n.LanguageSetting.SYSTEM -> initialDefaultLocale ?: java.util.Locale.getDefault()
+        com.driftgirls.i18n.LanguageSetting.ES -> java.util.Locale.forLanguageTag("es")
+        com.driftgirls.i18n.LanguageSetting.EN -> java.util.Locale.forLanguageTag("en")
+    }
+
+    java.util.Locale.setDefault(targetLocale)
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        val localeList = when (setting) {
+            com.driftgirls.i18n.LanguageSetting.SYSTEM -> initialDefaultLocaleList ?: android.os.LocaleList(targetLocale)
+            else -> android.os.LocaleList(targetLocale)
+        }
+        android.os.LocaleList.setDefault(localeList)
+    }
+
+    val ctx = AndroidContextHolder.context
+    if (ctx != null) {
+        val resources = ctx.resources
+        val config = resources.configuration
+        config.setLocale(targetLocale)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            val localeList = when (setting) {
+                com.driftgirls.i18n.LanguageSetting.SYSTEM -> initialDefaultLocaleList ?: android.os.LocaleList(targetLocale)
+                else -> android.os.LocaleList(targetLocale)
+            }
+            config.setLocales(localeList)
+        }
+        @Suppress("DEPRECATION")
+        resources.updateConfiguration(config, resources.displayMetrics)
+    }
 }
 
 actual fun playBackgroundMusic(musicTrack: String) {

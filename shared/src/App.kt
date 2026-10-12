@@ -78,69 +78,75 @@ fun App() {
         }
     }
 
-    MaterialTheme(
-        colorScheme = if (isDarkTheme) darkColorScheme() else lightColorScheme()
-    ) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = if (isDarkTheme) Color(0xFF0F041D) else Color(0xFFF5F0FF)
+    LaunchedEffect(AppSettings.languageSetting) {
+        applyLanguageSetting(AppSettings.languageSetting)
+    }
+
+    key(AppSettings.languageSetting) {
+        MaterialTheme(
+            colorScheme = if (isDarkTheme) darkColorScheme() else lightColorScheme()
         ) {
-            Crossfade(targetState = currentScreen) { screen ->
-                when (screen) {
-                    Screen.HOME -> HomeScreen(
-                        gameEngine = gameEngine,
-                        onNavigateToRace = { navigateTo(Screen.TRACKS) },
-                        onNavigateToGarage = { navigateTo(Screen.GARAGE) },
-                        onNavigateToCompanions = { navigateTo(Screen.COMPANIONS) },
-                        onNavigateToTracks = { navigateTo(Screen.TRACKS) },
-                        onNavigateToLeaderboard = { navigateTo(Screen.LEADERBOARD) },
-                        onNavigateToSettings = { navigateTo(Screen.SETTINGS) },
-                        isDarkTheme = isDarkTheme
-                    )
-                    Screen.RACE -> RaceScreen(
-                        gameEngine = gameEngine,
-                        onBackToHome = goBack,
-                        onGoToGarage = {
-                            if (!backStack.contains(Screen.GARAGE)) {
-                                backStack.add(Screen.GARAGE)
-                            } else {
-                                while (backStack.lastOrNull() != Screen.GARAGE && backStack.size > 1) {
-                                    backStack.removeAt(backStack.size - 1)
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = if (isDarkTheme) Color(0xFF0F041D) else Color(0xFFF5F0FF)
+            ) {
+                Crossfade(targetState = currentScreen) { screen ->
+                    when (screen) {
+                        Screen.HOME -> HomeScreen(
+                            gameEngine = gameEngine,
+                            onNavigateToRace = { navigateTo(Screen.TRACKS) },
+                            onNavigateToGarage = { navigateTo(Screen.GARAGE) },
+                            onNavigateToCompanions = { navigateTo(Screen.COMPANIONS) },
+                            onNavigateToTracks = { navigateTo(Screen.TRACKS) },
+                            onNavigateToLeaderboard = { navigateTo(Screen.LEADERBOARD) },
+                            onNavigateToSettings = { navigateTo(Screen.SETTINGS) },
+                            isDarkTheme = isDarkTheme
+                        )
+                        Screen.RACE -> RaceScreen(
+                            gameEngine = gameEngine,
+                            onBackToHome = goBack,
+                            onGoToGarage = {
+                                if (!backStack.contains(Screen.GARAGE)) {
+                                    backStack.add(Screen.GARAGE)
+                                } else {
+                                    while (backStack.lastOrNull() != Screen.GARAGE && backStack.size > 1) {
+                                        backStack.removeAt(backStack.size - 1)
+                                    }
                                 }
-                            }
-                        },
-                        isDarkTheme = isDarkTheme
-                    )
-                    Screen.GARAGE -> GarageScreen(
-                        gameEngine = gameEngine,
-                        onBackToHome = goBack,
-                        onStartRace = {
-                            gameEngine.startRace(gameEngine.saveData.unlockedTrackIds.firstOrNull() ?: "track_tutorial")
-                            navigateTo(Screen.RACE)
-                        },
-                        isDarkTheme = isDarkTheme
-                    )
-                    Screen.COMPANIONS -> CompanionsScreen(
-                        gameEngine = gameEngine,
-                        onBackToHome = goBack,
-                        isDarkTheme = isDarkTheme
-                    )
-                    Screen.TRACKS -> TrackSelectScreen(
-                        gameEngine = gameEngine,
-                        onBackToHome = goBack,
-                        onStartRace = { navigateTo(Screen.RACE) },
-                        isDarkTheme = isDarkTheme
-                    )
-                    Screen.LEADERBOARD -> LeaderboardScreen(
-                        gameEngine = gameEngine,
-                        onBackToHome = goBack,
-                        isDarkTheme = isDarkTheme
-                    )
-                    Screen.SETTINGS -> SettingsScreen(
-                        gameEngine = gameEngine,
-                        onBackToHome = goBack,
-                        isDarkTheme = isDarkTheme
-                    )
+                            },
+                            isDarkTheme = isDarkTheme
+                        )
+                        Screen.GARAGE -> GarageScreen(
+                            gameEngine = gameEngine,
+                            onBackToHome = goBack,
+                            onStartRace = {
+                                gameEngine.startRace(gameEngine.saveData.unlockedTrackIds.firstOrNull() ?: "track_tutorial")
+                                navigateTo(Screen.RACE)
+                            },
+                            isDarkTheme = isDarkTheme
+                        )
+                        Screen.COMPANIONS -> CompanionsScreen(
+                            gameEngine = gameEngine,
+                            onBackToHome = goBack,
+                            isDarkTheme = isDarkTheme
+                        )
+                        Screen.TRACKS -> TrackSelectScreen(
+                            gameEngine = gameEngine,
+                            onBackToHome = goBack,
+                            onStartRace = { navigateTo(Screen.RACE) },
+                            isDarkTheme = isDarkTheme
+                        )
+                        Screen.LEADERBOARD -> LeaderboardScreen(
+                            gameEngine = gameEngine,
+                            onBackToHome = goBack,
+                            isDarkTheme = isDarkTheme
+                        )
+                        Screen.SETTINGS -> SettingsScreen(
+                            gameEngine = gameEngine,
+                            onBackToHome = goBack,
+                            isDarkTheme = isDarkTheme
+                        )
+                    }
                 }
             }
         }

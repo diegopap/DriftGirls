@@ -12,6 +12,7 @@ expect fun saveGameData(data: String)
 expect fun loadGameData(): String?
 expect fun getFormattedCurrentDate(): String
 expect fun getSystemLanguageCode(): String
+expect fun applyLanguageSetting(setting: com.driftgirls.i18n.LanguageSetting)
 
 expect fun playBackgroundMusic(musicTrack: String)
 expect fun stopBackgroundMusic()
