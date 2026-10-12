@@ -34,6 +34,8 @@
     <string name="drive_now">DRIVE NOW!! 🏎️</string>
     <string name="select_car">SELECT CAR</string>
     <string name="buy_car_format">BUY CAR ($%1$d)</string>
+    <string name="car_locked">LOCKED</string>
+    <string name="buy_previous_car_first">🔒 BUY %1$s FIRST</string>
 
     <string name="companions_title">COMPANIONS &amp; DATING</string>
     <string name="no_companions_banner">🔒 No companions discovered yet! Win races with 3 STARS for a 50% chance to discover girls!</string>

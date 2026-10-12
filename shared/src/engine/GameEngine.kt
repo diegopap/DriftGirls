@@ -1058,6 +1058,30 @@ class GameEngine {
             .maxOfOrNull { it.driftScore } ?: 5000
     }
 
+    fun addCash(amount: Int) {
+        if (amount > 0) {
+            saveData = saveData.copy(cash = saveData.cash + amount)
+            persistSaveToDisk()
+        }
+    }
+
+    fun getPreviousCar(car: Car): Car? {
+        val index = cars.indexOfFirst { it.id == car.id }
+        if (index <= 0) return null
+        return cars.getOrNull(index - 1)
+    }
+
+    fun isCarUnlocked(car: Car): Boolean {
+        val previousCar = getPreviousCar(car) ?: return true
+        return saveData.ownedCarIds.contains(previousCar.id)
+    }
+
+    fun canBuyCar(car: Car): Boolean {
+        return !saveData.ownedCarIds.contains(car.id) &&
+                isCarUnlocked(car) &&
+                saveData.cash >= car.price
+    }
+
     fun selectCar(carId: String) {
         if (saveData.ownedCarIds.contains(carId)) {
             saveData = saveData.copy(selectedCarId = carId)
@@ -1066,7 +1090,7 @@ class GameEngine {
     }
 
     fun buyCar(car: Car) {
-        if (saveData.cash >= car.price && !saveData.ownedCarIds.contains(car.id)) {
+        if (canBuyCar(car)) {
             val newOwned = saveData.ownedCarIds + car.id
             saveData = saveData.copy(
                 cash = saveData.cash - car.price,

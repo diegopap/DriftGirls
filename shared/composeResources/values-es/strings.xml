@@ -34,6 +34,8 @@
     <string name="drive_now">¡¡CONDUCIR AHORA!! 🏎️</string>
     <string name="select_car">SELECCIONAR COCHE</string>
     <string name="buy_car_format">COMPRAR COCHE ($%1$d)</string>
+    <string name="car_locked">BLOQUEADO</string>
+    <string name="buy_previous_car_first">🔒 COMPRA %1$s PRIMERO</string>
 
     <string name="companions_title">ACOMPAÑANTES Y CITAS</string>
     <string name="no_companions_banner">🔒 ¡Aún no se han descubierto acompañantes! ¡Gana carreras con 3 ESTRELLAS para un 50% de probabilidad de descubrir chicas!</string>

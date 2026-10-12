@@ -117,6 +117,7 @@ fun GarageScreen(
         ) {
             items(cars) { car ->
                 val isCarOwned = gameEngine.saveData.ownedCarIds.contains(car.id)
+                val isCarUnlocked = gameEngine.isCarUnlocked(car)
                 val isCarActive = car.id == previewCarId
 
                 Card(
@@ -141,9 +142,22 @@ fun GarageScreen(
                             maxLines = 1
                         )
                         Spacer(modifier = Modifier.height(4.dp))
+                        val statusText = when {
+                            isCarOwned -> stringResource(Res.string.owned)
+                            isCarUnlocked -> "$${car.price}"
+                            else -> "🔒 " + stringResource(Res.string.car_locked)
+                        }
+                        val statusColor = when {
+                            isCarActive && !isCarOwned && !isCarUnlocked -> Color.White.copy(alpha = 0.8f)
+                            isCarActive && isCarOwned -> Color(0xFF76FF03)
+                            isCarActive -> Color(0xFFFFD600)
+                            isCarOwned -> Color(0xFF76FF03)
+                            isCarUnlocked -> if (isDarkTheme) Color(0xFFFFD600) else Color(0xFFB8860B)
+                            else -> subTextColor
+                        }
                         Text(
-                            text = if (isCarOwned) stringResource(Res.string.owned) else "$${car.price}",
-                            color = if (isCarOwned) Color(0xFF76FF03) else (if (isDarkTheme) Color(0xFFFFD600) else Color(0xFFB8860B)),
+                            text = statusText,
+                            color = statusColor,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -302,19 +316,42 @@ fun GarageScreen(
                 }
             }
         } else {
-            Button(
-                onClick = { gameEngine.buyCar(previewCar) },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF76FF03)),
-                enabled = gameEngine.saveData.cash >= previewCar.price
-            ) {
-                Text(
-                    text = stringResource(Res.string.buy_car_format, previewCar.price),
-                    color = Color.Black,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Black
-                )
+            val isUnlocked = gameEngine.isCarUnlocked(previewCar)
+            val previousCar = gameEngine.getPreviousCar(previewCar)
+
+            if (isUnlocked) {
+                Button(
+                    onClick = { gameEngine.buyCar(previewCar) },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF76FF03)),
+                    enabled = gameEngine.canBuyCar(previewCar)
+                ) {
+                    Text(
+                        text = stringResource(Res.string.buy_car_format, previewCar.price),
+                        color = Color.Black,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+            } else {
+                Button(
+                    onClick = { },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = textColor.copy(alpha = 0.15f),
+                        disabledContainerColor = textColor.copy(alpha = 0.15f)
+                    ),
+                    enabled = false
+                ) {
+                    Text(
+                        text = stringResource(Res.string.buy_previous_car_first, previousCar?.name ?: ""),
+                        color = textColor.copy(alpha = 0.6f),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }
