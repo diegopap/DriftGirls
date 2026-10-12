@@ -83,17 +83,17 @@ fun RaceScreen(
     val titleColor = if (isDarkTheme) Color(0xFFFFD600) else Color(0xFF8B6B00)
 
     val race = gameEngine.activeRaceState ?: return
-    var showTutorial by remember {
+    var showTutorial by remember(race) {
         mutableStateOf(race.track.isTutorial && !gameEngine.saveData.completedTutorial)
     }
-    var showSettings by remember { mutableStateOf(false) }
+    var showSettings by remember(race) { mutableStateOf(false) }
 
     PlatformBackHandler(enabled = !race.isFinished) {
         showSettings = !showSettings
     }
 
     // Smooth Game Engine Update Loop
-    LaunchedEffect(Unit) {
+    LaunchedEffect(race) {
         var lastFrameTimeNanos = 0L
         while (true) {
             withFrameNanos { frameTimeNanos ->
