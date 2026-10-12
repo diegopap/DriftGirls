@@ -11,6 +11,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.driftgirls.engine.GameEngine
 import com.driftgirls.i18n.AppSettings
 import com.driftgirls.i18n.ThemeSetting
@@ -49,6 +52,30 @@ fun App() {
             playBackgroundMusic(trackMusic)
         } else {
             playBackgroundMusic("menu")
+        }
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, currentScreen, currentTrackId) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE, Lifecycle.Event.ON_STOP -> {
+                    stopBackgroundMusic()
+                }
+                Lifecycle.Event.ON_RESUME -> {
+                    if (currentScreen == Screen.RACE) {
+                        val trackMusic = "race_" + (currentTrackId ?: "track_tutorial")
+                        playBackgroundMusic(trackMusic)
+                    } else {
+                        playBackgroundMusic("menu")
+                    }
+                }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
