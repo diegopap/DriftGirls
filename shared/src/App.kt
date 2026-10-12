@@ -108,7 +108,8 @@ fun App() {
                                     backStack.removeAt(backStack.size - 1)
                                 }
                             }
-                        }
+                        },
+                        isDarkTheme = isDarkTheme
                     )
                     Screen.GARAGE -> GarageScreen(
                         gameEngine = gameEngine,
@@ -116,20 +117,24 @@ fun App() {
                         onStartRace = {
                             gameEngine.startRace(gameEngine.saveData.unlockedTrackIds.firstOrNull() ?: "track_tutorial")
                             navigateTo(Screen.RACE)
-                        }
+                        },
+                        isDarkTheme = isDarkTheme
                     )
                     Screen.COMPANIONS -> CompanionsScreen(
                         gameEngine = gameEngine,
-                        onBackToHome = goBack
+                        onBackToHome = goBack,
+                        isDarkTheme = isDarkTheme
                     )
                     Screen.TRACKS -> TrackSelectScreen(
                         gameEngine = gameEngine,
                         onBackToHome = goBack,
-                        onStartRace = { navigateTo(Screen.RACE) }
+                        onStartRace = { navigateTo(Screen.RACE) },
+                        isDarkTheme = isDarkTheme
                     )
                     Screen.LEADERBOARD -> LeaderboardScreen(
                         gameEngine = gameEngine,
-                        onBackToHome = goBack
+                        onBackToHome = goBack,
+                        isDarkTheme = isDarkTheme
                     )
                     Screen.SETTINGS -> SettingsScreen(
                         gameEngine = gameEngine,

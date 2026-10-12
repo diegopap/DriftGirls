@@ -30,8 +30,13 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun CompanionsScreen(
     gameEngine: GameEngine,
-    onBackToHome: () -> Unit
+    onBackToHome: () -> Unit,
+    isDarkTheme: Boolean = true
 ) {
+    val cardBg = if (isDarkTheme) Color(0xFF28113D) else Color(0xFFFFFFFF)
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF1E0A2A)
+    val subTextColor = if (isDarkTheme) Color.White.copy(alpha = 0.6f) else Color(0xFF1E0A2A).copy(alpha = 0.6f)
+
     val companions = gameEngine.companions
     val discoveredIds = gameEngine.saveData.discoveredCompanionIds
     val selectedCompanionId = gameEngine.saveData.selectedCompanionId
@@ -67,7 +72,11 @@ fun CompanionsScreen(
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    listOf(Color(0xFF1E0A2A), Color(0xFF2C103D), Color(0xFF110519))
+                    if (isDarkTheme) {
+                        listOf(Color(0xFF140826), Color(0xFF271040), Color(0xFF0F041D))
+                    } else {
+                        listOf(Color(0xFFF5F0FF), Color(0xFFE9DCFF), Color(0xFFDFCDFF))
+                    }
                 )
             )
             .statusBarsPadding()
@@ -81,12 +90,12 @@ fun CompanionsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBackToHome) {
-                Text("◄", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("◄", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
 
             Text(
                 text = stringResource(Res.string.companions_title),
-                color = Color.White,
+                color = textColor,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Black
             )
@@ -145,9 +154,9 @@ fun CompanionsScreen(
                         },
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (isSelected) Color(0xFFFF007F) else if (isDiscovered) Color(0xFF3B1854) else Color(0xFF1C0D2B)
+                        containerColor = if (isSelected) Color(0xFFFF007F) else if (isDiscovered) (if (isDarkTheme) Color(0xFF3B1854) else Color(0xFFE2D4F8)) else (if (isDarkTheme) Color(0xFF1C0D2B) else Color(0xFFD6C4F1))
                     ),
-                    border = if (isSelected) androidx.compose.foundation.BorderStroke(2.dp, Color.White) else null
+                    border = if (isSelected) androidx.compose.foundation.BorderStroke(2.dp, if (isDarkTheme) Color.White else Color(0xFF1E0A2A)) else null
                 ) {
                     Column(
                         modifier = Modifier.padding(12.dp),
@@ -160,13 +169,13 @@ fun CompanionsScreen(
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = if (isDiscovered) companion.name else "🔒 ${companion.name}",
-                            color = if (isDiscovered) Color.White else Color.Gray,
+                            color = if (isSelected || isDiscovered) textColor else (if (isDarkTheme) Color.Gray else Color(0xFF555555)),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = if (isDiscovered) stringResource(Res.string.affection_format, aff) else stringResource(Res.string.locked),
-                            color = if (isDiscovered) Color(0xFFFF80AB) else Color.Gray.copy(alpha = 0.6f),
+                            color = if (isSelected) Color.White.copy(alpha = 0.8f) else if (isDiscovered) Color(0xFFFF80AB) else subTextColor,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -181,7 +190,7 @@ fun CompanionsScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF28113D)),
+            colors = CardDefaults.cardColors(containerColor = cardBg),
             border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF80AB).copy(alpha = 0.3f))
         ) {
             Column(
@@ -198,7 +207,7 @@ fun CompanionsScreen(
 
                 Text(
                     text = if (isPreviewDiscovered) activeCompanion.name else "🔒 ${activeCompanion.name} (${stringResource(Res.string.locked).uppercase()})",
-                    color = Color.White,
+                    color = textColor,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Black
                 )
@@ -215,7 +224,7 @@ fun CompanionsScreen(
                 if (isPreviewDiscovered) {
                     Text(
                         text = activeCompanion.localizedBio(),
-                        color = Color.White.copy(alpha = 0.7f),
+                        color = subTextColor,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(horizontal = 8.dp)
                     )
@@ -241,7 +250,7 @@ fun CompanionsScreen(
                                 .height(10.dp)
                                 .clip(CircleShape),
                             color = Color(0xFFFF4081),
-                            trackColor = Color.White.copy(alpha = 0.15f)
+                            trackColor = subTextColor.copy(alpha = 0.2f)
                         )
                     }
 
@@ -251,7 +260,7 @@ fun CompanionsScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color(0xFF381B54), RoundedCornerShape(12.dp))
+                            .background(if (isDarkTheme) Color(0xFF381B54) else Color(0xFFEEDEFF), RoundedCornerShape(12.dp))
                             .padding(10.dp)
                     ) {
                         Text(
@@ -260,7 +269,7 @@ fun CompanionsScreen(
                                 activeCompanion.bonusType.localizedDescription(),
                                 activeCompanion.effectiveBonusValue().toInt()
                             ),
-                            color = Color(0xFFFFD600),
+                            color = if (isDarkTheme) Color(0xFFFFD600) else Color(0xFF8B6B00),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -272,13 +281,13 @@ fun CompanionsScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color(0xFFFF007F).copy(alpha = 0.25f), RoundedCornerShape(12.dp))
+                                .background(Color(0xFFFF007F).copy(alpha = if (isDarkTheme) 0.25f else 0.15f), RoundedCornerShape(12.dp))
                                 .border(1.dp, Color(0xFFFF007F), RoundedCornerShape(12.dp))
                                 .padding(12.dp)
                         ) {
                             Text(
                                 text = "💬 \"$msg\"",
-                                color = Color.White,
+                                color = textColor,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -307,13 +316,13 @@ fun CompanionsScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color(0xFF1E0A2A), RoundedCornerShape(12.dp))
+                            .background(if (isDarkTheme) Color(0xFF1E0A2A) else Color(0xFFEEDEFF), RoundedCornerShape(12.dp))
                             .border(1.dp, Color(0xFFFFD600).copy(alpha = 0.5f), RoundedCornerShape(12.dp))
                             .padding(12.dp)
                     ) {
                         Text(
                             text = stringResource(Res.string.how_to_unlock_format, reqTrack, activeCompanion.name),
-                            color = Color(0xFFFFD600),
+                            color = if (isDarkTheme) Color(0xFFFFD600) else Color(0xFF8B6B00),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -331,20 +340,28 @@ fun CompanionsScreen(
                     onClick = { selectedTab = 0 },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (selectedTab == 0) Color(0xFFFF007F) else Color(0xFF28113D)
+                        containerColor = if (selectedTab == 0) Color(0xFFFF007F) else cardBg
                     )
                 ) {
-                    Text(stringResource(Res.string.tab_dates), color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(
+                        stringResource(Res.string.tab_dates),
+                        color = if (selectedTab == 0) Color.White else textColor,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = { selectedTab = 1 },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (selectedTab == 1) Color(0xFFFF007F) else Color(0xFF28113D)
+                        containerColor = if (selectedTab == 1) Color(0xFFFF007F) else cardBg
                     )
                 ) {
-                    Text(stringResource(Res.string.tab_gifts), color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(
+                        stringResource(Res.string.tab_gifts),
+                        color = if (selectedTab == 1) Color.White else textColor,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
@@ -357,7 +374,7 @@ fun CompanionsScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF28113D))
+                            colors = CardDefaults.cardColors(containerColor = cardBg)
                         ) {
                             Row(
                                 modifier = Modifier
@@ -368,13 +385,13 @@ fun CompanionsScreen(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = dateActivity.localizedTitle(),
-                                        color = Color.White,
+                                        color = textColor,
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
                                         text = "${dateActivity.localizedLocation()} • ${dateActivity.localizedDescription()}",
-                                        color = Color.White.copy(alpha = 0.6f),
+                                        color = subTextColor,
                                         fontSize = 11.sp
                                     )
                                     Text(
@@ -416,7 +433,7 @@ fun CompanionsScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF28113D))
+                            colors = CardDefaults.cardColors(containerColor = cardBg)
                         ) {
                             Row(
                                 modifier = Modifier
@@ -430,7 +447,7 @@ fun CompanionsScreen(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = giftName,
-                                        color = Color.White,
+                                        color = textColor,
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold
                                     )

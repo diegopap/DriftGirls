@@ -23,8 +23,12 @@ import org.jetbrains.compose.resources.stringResource
 fun TrackSelectScreen(
     gameEngine: GameEngine,
     onBackToHome: () -> Unit,
-    onStartRace: () -> Unit
+    onStartRace: () -> Unit,
+    isDarkTheme: Boolean = true
 ) {
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF1E0A2A)
+    val subTextColor = if (isDarkTheme) Color.White.copy(alpha = 0.6f) else Color(0xFF1E0A2A).copy(alpha = 0.6f)
+
     val tracks = gameEngine.tracks
     val unlockedTrackIds = gameEngine.saveData.unlockedTrackIds
     val discoveredCompanionIds = gameEngine.saveData.discoveredCompanionIds
@@ -41,7 +45,11 @@ fun TrackSelectScreen(
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    listOf(Color(0xFF091321), Color(0xFF102138), Color(0xFF060D17))
+                    if (isDarkTheme) {
+                        listOf(Color(0xFF140826), Color(0xFF271040), Color(0xFF0F041D))
+                    } else {
+                        listOf(Color(0xFFF5F0FF), Color(0xFFE9DCFF), Color(0xFFDFCDFF))
+                    }
                 )
             )
             .statusBarsPadding()
@@ -54,12 +62,12 @@ fun TrackSelectScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBackToHome) {
-                Text("◄", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("◄", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
 
             Text(
                 text = stringResource(Res.string.tracks_title),
-                color = Color.White,
+                color = textColor,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Black
             )
@@ -89,11 +97,15 @@ fun TrackSelectScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (isUnlocked) Color(0xFF162B48) else Color(0xFF0D182A)
+                        containerColor = if (isUnlocked) {
+                            if (isDarkTheme) Color(0xFF162B48) else Color(0xFFFFFFFF)
+                        } else {
+                            if (isDarkTheme) Color(0xFF0D182A) else Color(0xFFE9E4F8)
+                        }
                     ),
                     border = androidx.compose.foundation.BorderStroke(
                         width = 1.5.dp,
-                        color = if (isUnlocked) Color(track.primaryColorHex).copy(alpha = 0.6f) else Color.Gray.copy(alpha = 0.2f)
+                        color = if (isUnlocked) Color(track.primaryColorHex).copy(alpha = 0.6f) else textColor.copy(alpha = 0.2f)
                     )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -106,7 +118,7 @@ fun TrackSelectScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
                                         text = track.name,
-                                        color = if (isUnlocked) Color.White else Color.Gray,
+                                        color = if (isUnlocked) textColor else subTextColor,
                                         fontSize = 18.sp,
                                         fontWeight = FontWeight.Black
                                     )
@@ -124,7 +136,7 @@ fun TrackSelectScreen(
 
                                 Text(
                                     text = "${track.localizedLocation()} • ${stringResource(Res.string.difficulty_format, track.localizedDifficulty())}",
-                                    color = Color.White.copy(alpha = 0.6f),
+                                    color = subTextColor,
                                     fontSize = 12.sp
                                 )
                             }
@@ -132,14 +144,14 @@ fun TrackSelectScreen(
                             Box(
                                 modifier = Modifier
                                     .background(
-                                        if (isUnlocked) Color(track.primaryColorHex) else Color.Gray.copy(alpha = 0.3f),
+                                        if (isUnlocked) Color(track.primaryColorHex) else subTextColor.copy(alpha = 0.3f),
                                         RoundedCornerShape(8.dp)
                                     )
                                     .padding(horizontal = 8.dp, vertical = 4.dp)
                             ) {
                                 Text(
                                     text = if (isUnlocked) stringResource(Res.string.unlocked) else "${stringResource(Res.string.locked).uppercase()} 🔒",
-                                    color = if (isUnlocked) Color.Black else Color.White.copy(alpha = 0.6f),
+                                    color = if (isUnlocked) Color.Black else textColor,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Black
                                 )
@@ -178,15 +190,15 @@ fun TrackSelectScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(stringResource(Res.string.distance_format, track.distanceMeters), color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
-                            Text(stringResource(Res.string.hairpins_format, track.cornersCount), color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
+                            Text(stringResource(Res.string.distance_format, track.distanceMeters), color = subTextColor, fontSize = 12.sp)
+                            Text(stringResource(Res.string.hairpins_format, track.cornersCount), color = subTextColor, fontSize = 12.sp)
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
 
                         // Rewards
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(stringResource(Res.string.rewards_label), color = Color.Gray, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.rewards_label), color = subTextColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("+$${track.rewardCash}", color = Color(0xFF76FF03), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.width(12.dp))
@@ -220,12 +232,12 @@ fun TrackSelectScreen(
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(track.primaryColorHex),
-                                disabledContainerColor = Color.Gray.copy(alpha = 0.2f)
+                                disabledContainerColor = subTextColor.copy(alpha = 0.2f)
                             )
                         ) {
                             Text(
                                 text = if (isUnlocked) stringResource(Res.string.enter_race) else stringResource(Res.string.locked).uppercase(),
-                                color = if (isUnlocked) Color.Black else Color.White.copy(alpha = 0.4f),
+                                color = if (isUnlocked) Color.Black else textColor.copy(alpha = 0.4f),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Black
                             )

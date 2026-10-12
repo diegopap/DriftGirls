@@ -32,8 +32,13 @@ import org.jetbrains.compose.resources.stringResource
 fun GarageScreen(
     gameEngine: GameEngine,
     onBackToHome: () -> Unit,
-    onStartRace: () -> Unit
+    onStartRace: () -> Unit,
+    isDarkTheme: Boolean = true
 ) {
+    val cardBg = if (isDarkTheme) Color(0xFF28113D) else Color(0xFFFFFFFF)
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF1E0A2A)
+    val subTextColor = if (isDarkTheme) Color.White.copy(alpha = 0.6f) else Color(0xFF1E0A2A).copy(alpha = 0.6f)
+
     val cars = gameEngine.cars
     val activeCarId = gameEngine.saveData.selectedCarId
     var previewCarId by remember { mutableStateOf(activeCarId) }
@@ -57,7 +62,11 @@ fun GarageScreen(
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    listOf(Color(0xFF0F081D), Color(0xFF1B0E33), Color(0xFF0D0618))
+                    if (isDarkTheme) {
+                        listOf(Color(0xFF140826), Color(0xFF271040), Color(0xFF0F041D))
+                    } else {
+                        listOf(Color(0xFFF5F0FF), Color(0xFFE9DCFF), Color(0xFFDFCDFF))
+                    }
                 )
             )
             .statusBarsPadding()
@@ -71,12 +80,12 @@ fun GarageScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBackToHome) {
-                Text("◄", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("◄", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
 
             Text(
                 text = stringResource(Res.string.garage_title),
-                color = Color.White,
+                color = textColor,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Black
             )
@@ -116,9 +125,9 @@ fun GarageScreen(
                         .clickable { previewCarId = car.id },
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (isCarActive) Color(0xFFFF007F) else Color(0xFF2B1947)
+                        containerColor = if (isCarActive) Color(0xFFFF007F) else (if (isDarkTheme) Color(0xFF2B1947) else Color(0xFFE2D4F8))
                     ),
-                    border = if (isCarActive) androidx.compose.foundation.BorderStroke(2.dp, Color.White) else null
+                    border = if (isCarActive) androidx.compose.foundation.BorderStroke(2.dp, if (isDarkTheme) Color.White else Color(0xFF1E0A2A)) else null
                 ) {
                     Column(
                         modifier = Modifier.padding(12.dp),
@@ -126,7 +135,7 @@ fun GarageScreen(
                     ) {
                         Text(
                             text = car.name,
-                            color = Color.White,
+                            color = if (isCarActive) Color.White else textColor,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1
@@ -134,7 +143,7 @@ fun GarageScreen(
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = if (isCarOwned) stringResource(Res.string.owned) else "$${car.price}",
-                            color = if (isCarOwned) Color(0xFF76FF03) else Color(0xFFFFD600),
+                            color = if (isCarOwned) Color(0xFF76FF03) else (if (isDarkTheme) Color(0xFFFFD600) else Color(0xFFB8860B)),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -150,8 +159,8 @@ fun GarageScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
-                .background(Color(0xFF140B28), RoundedCornerShape(24.dp))
-                .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(24.dp)),
+                .background(if (isDarkTheme) Color(0xFF140B28) else Color(0xFFFFFFFF), RoundedCornerShape(24.dp))
+                .border(1.dp, textColor.copy(alpha = 0.15f), RoundedCornerShape(24.dp)),
             contentAlignment = Alignment.Center
         ) {
             CarCanvas(
@@ -180,8 +189,8 @@ fun GarageScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Vehicle Details
-        Text(text = previewCar.name, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
-        Text(text = previewCar.localizedSubtitle(), color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp)
+        Text(text = previewCar.name, color = textColor, fontSize = 22.sp, fontWeight = FontWeight.Black)
+        Text(text = previewCar.localizedSubtitle(), color = subTextColor, fontSize = 13.sp)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -202,7 +211,10 @@ fun GarageScreen(
             level = previewCar.engineUpgradeLevel,
             upgradeCost = engineCost,
             canAfford = gameEngine.saveData.cash >= engineCost,
-            barColor = Color(0xFFFF3D00)
+            barColor = Color(0xFFFF3D00),
+            textColor = textColor,
+            subTextColor = subTextColor,
+            isDarkTheme = isDarkTheme
         ) {
             if (isOwned) gameEngine.upgradeCarComponent(previewCar.id, "ENGINE")
         }
@@ -214,7 +226,10 @@ fun GarageScreen(
             level = previewCar.tiresUpgradeLevel,
             upgradeCost = tiresCost,
             canAfford = gameEngine.saveData.cash >= tiresCost,
-            barColor = Color(0xFFFF007F)
+            barColor = Color(0xFFFF007F),
+            textColor = textColor,
+            subTextColor = subTextColor,
+            isDarkTheme = isDarkTheme
         ) {
             if (isOwned) gameEngine.upgradeCarComponent(previewCar.id, "TIRES")
         }
@@ -226,7 +241,10 @@ fun GarageScreen(
             level = previewCar.nitroUpgradeLevel,
             upgradeCost = nitroCost,
             canAfford = gameEngine.saveData.cash >= nitroCost,
-            barColor = Color(0xFF00E5FF)
+            barColor = Color(0xFF00E5FF),
+            textColor = textColor,
+            subTextColor = subTextColor,
+            isDarkTheme = isDarkTheme
         ) {
             if (isOwned) gameEngine.upgradeCarComponent(previewCar.id, "NITRO")
         }
@@ -234,7 +252,7 @@ fun GarageScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         // Custom Paint Color Palette
-        Text(stringResource(Res.string.custom_paint), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(Res.string.custom_paint), color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -248,7 +266,7 @@ fun GarageScreen(
                         .background(Color(colorHex))
                         .border(
                             width = if (previewCar.colorHex == colorHex) 3.dp else 1.dp,
-                            color = if (previewCar.colorHex == colorHex) Color.White else Color.Transparent,
+                            color = if (previewCar.colorHex == colorHex) textColor else Color.Transparent,
                             shape = CircleShape
                         )
                         .clickable {
@@ -311,6 +329,9 @@ private fun StatRow(
     upgradeCost: Int,
     canAfford: Boolean,
     barColor: Color,
+    textColor: Color,
+    subTextColor: Color,
+    isDarkTheme: Boolean,
     onUpgrade: () -> Unit
 ) {
     Column {
@@ -320,11 +341,11 @@ private fun StatRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(label, color = Color.White.copy(alpha = 0.7f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text(label, color = subTextColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.width(6.dp))
                 Box(
                     modifier = Modifier
-                        .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                        .background(textColor.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
                         .padding(horizontal = 4.dp, vertical = 1.dp)
                 ) {
                     Text(
@@ -335,7 +356,7 @@ private fun StatRow(
                     )
                 }
             }
-            Text(valueText, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Black)
+            Text(valueText, color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Black)
         }
         Spacer(modifier = Modifier.height(4.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -346,7 +367,7 @@ private fun StatRow(
                     .height(8.dp)
                     .clip(CircleShape),
                 color = barColor,
-                trackColor = Color.White.copy(alpha = 0.15f)
+                trackColor = textColor.copy(alpha = 0.15f)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Button(
@@ -354,14 +375,14 @@ private fun StatRow(
                 enabled = level < 5 && canAfford,
                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (level >= 5) Color.Gray.copy(alpha = 0.3f) else if (canAfford) Color(0xFF76FF03) else Color.White.copy(alpha = 0.15f),
-                    disabledContainerColor = Color.White.copy(alpha = 0.1f)
+                    containerColor = if (level >= 5) Color.Gray.copy(alpha = 0.3f) else if (canAfford) Color(0xFF76FF03) else textColor.copy(alpha = 0.15f),
+                    disabledContainerColor = textColor.copy(alpha = 0.1f)
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
                     text = if (level >= 5) stringResource(Res.string.max_level) else stringResource(Res.string.upgrade_cost_format, upgradeCost),
-                    color = if (level >= 5) Color.White.copy(alpha = 0.5f) else if (canAfford) Color.Black else Color.White.copy(alpha = 0.6f),
+                    color = if (level >= 5) textColor.copy(alpha = 0.5f) else if (canAfford) Color.Black else textColor.copy(alpha = 0.6f),
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Black
                 )

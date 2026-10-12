@@ -61,8 +61,15 @@ import org.jetbrains.compose.resources.stringResource
 fun RaceScreen(
     gameEngine: GameEngine,
     onBackToHome: () -> Unit,
-    onGoToGarage: () -> Unit
+    onGoToGarage: () -> Unit,
+    isDarkTheme: Boolean = true
 ) {
+    val cardBg = if (isDarkTheme) Color(0xFF1E1035) else Color(0xFFFFFFFF)
+    val finishCardBg = if (isDarkTheme) Color(0xFF1A1228) else Color(0xFFFFFFFF)
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF1E0A2A)
+    val subTextColor = if (isDarkTheme) Color.White.copy(alpha = 0.6f) else Color(0xFF1E0A2A).copy(alpha = 0.6f)
+    val titleColor = if (isDarkTheme) Color(0xFFFFD600) else Color(0xFF8B6B00)
+
     val race = gameEngine.activeRaceState ?: return
     var showTutorial by remember {
         mutableStateOf(race.track.isTutorial && !gameEngine.saveData.completedTutorial)
@@ -539,7 +546,7 @@ fun RaceScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(if (isLandscape) 0.7f else 1f),
                     shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1035))
+                    colors = CardDefaults.cardColors(containerColor = cardBg)
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp),
@@ -564,7 +571,7 @@ fun RaceScreen(
 
                         Text(
                             text = stringResource(Res.string.tutorial_body),
-                            color = Color.White,
+                            color = textColor,
                             fontSize = 12.sp,
                             lineHeight = 16.sp
                         )
@@ -598,7 +605,7 @@ fun RaceScreen(
                         .fillMaxWidth(if (isLandscape) 0.65f else 0.9f)
                         .padding(16.dp),
                     shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1228))
+                    colors = CardDefaults.cardColors(containerColor = finishCardBg)
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp),
@@ -606,7 +613,7 @@ fun RaceScreen(
                     ) {
                         Text(
                             text = stringResource(Res.string.race_finished),
-                            color = Color(0xFFFFD600),
+                            color = titleColor,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Black
                         )
@@ -676,7 +683,7 @@ fun RaceScreen(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(Color(0xFF28113D), RoundedCornerShape(12.dp))
+                                        .background(if (isDarkTheme) Color(0xFF28113D) else Color(0xFFF3EFFF), RoundedCornerShape(12.dp))
                                         .border(1.dp, Color(0xFFFFD600).copy(alpha = 0.5f), RoundedCornerShape(12.dp))
                                         .padding(10.dp),
                                     contentAlignment = Alignment.Center
@@ -687,7 +694,7 @@ fun RaceScreen(
                                         } else {
                                             stringResource(Res.string.missed_discovery_needstars)
                                         },
-                                        color = Color(0xFFFFD600),
+                                        color = titleColor,
                                         fontSize = 11.sp,
                                         textAlign = TextAlign.Center,
                                         fontWeight = FontWeight.Bold
@@ -703,16 +710,16 @@ fun RaceScreen(
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(stringResource(Res.string.cash_label), color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Text(stringResource(Res.string.cash_label), color = subTextColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 Text("+$${race.earnedCash}", color = Color(0xFF76FF03), fontSize = 16.sp, fontWeight = FontWeight.Black)
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(stringResource(Res.string.gems_label), color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Text(stringResource(Res.string.gems_label), color = subTextColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 Text("+${race.earnedGems} 💎", color = Color(0xFF00E5FF), fontSize = 16.sp, fontWeight = FontWeight.Black)
                             }
                             if (race.companion != null) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(stringResource(Res.string.affection_label), color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    Text(stringResource(Res.string.affection_label), color = subTextColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                     Text("+${race.earnedAffection} 💕", color = Color(0xFFFF4081), fontSize = 16.sp, fontWeight = FontWeight.Black)
                                 }
                             }
@@ -734,7 +741,7 @@ fun RaceScreen(
                                 onClick = onGoToGarage,
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Text(stringResource(Res.string.menu_garage), color = Color.White)
+                                Text(stringResource(Res.string.menu_garage), color = textColor)
                             }
                             Spacer(modifier = Modifier.width(12.dp))
 

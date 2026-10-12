@@ -22,8 +22,13 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun LeaderboardScreen(
     gameEngine: GameEngine,
-    onBackToHome: () -> Unit
+    onBackToHome: () -> Unit,
+    isDarkTheme: Boolean = true
 ) {
+    val cardBg = if (isDarkTheme) Color(0xFF220F3A) else Color(0xFFFFFFFF)
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF1E0A2A)
+    val subTextColor = if (isDarkTheme) Color.White.copy(alpha = 0.6f) else Color(0xFF1E0A2A).copy(alpha = 0.6f)
+
     val leaderboard = gameEngine.saveData.leaderboardEntries.sortedWith(
         compareByDescending<com.driftgirls.model.LeaderboardEntry> { it.driftScore }
             .thenByDescending { it.dateString }
@@ -34,7 +39,11 @@ fun LeaderboardScreen(
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    listOf(Color(0xFF140728), Color(0xFF260F45), Color(0xFF0D0418))
+                    if (isDarkTheme) {
+                        listOf(Color(0xFF140826), Color(0xFF271040), Color(0xFF0F041D))
+                    } else {
+                        listOf(Color(0xFFF5F0FF), Color(0xFFE9DCFF), Color(0xFFDFCDFF))
+                    }
                 )
             )
             .statusBarsPadding()
@@ -47,12 +56,12 @@ fun LeaderboardScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBackToHome) {
-                Text("◄", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("◄", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
 
             Text(
                 text = stringResource(Res.string.leaderboard_title),
-                color = Color.White,
+                color = textColor,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Black
             )
@@ -78,7 +87,7 @@ fun LeaderboardScreen(
         ) {
             Text(
                 text = stringResource(Res.string.leaderboard_subtitle),
-                color = Color(0xFFFFD600),
+                color = if (isDarkTheme) Color(0xFFFFD600) else Color(0xFF8B6B00),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -96,7 +105,7 @@ fun LeaderboardScreen(
                 Card(
                     modifier = Modifier.padding(16.dp),
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF23103D))
+                    colors = CardDefaults.cardColors(containerColor = cardBg)
                 ) {
                     Column(
                         modifier = Modifier.padding(24.dp),
@@ -106,14 +115,14 @@ fun LeaderboardScreen(
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
                             text = stringResource(Res.string.no_high_scores),
-                            color = Color.White,
+                            color = textColor,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Black
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = stringResource(Res.string.no_high_scores_desc),
-                            color = Color.White.copy(alpha = 0.6f),
+                            color = subTextColor,
                             fontSize = 12.sp,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
@@ -131,17 +140,17 @@ fun LeaderboardScreen(
                         1 -> Color(0xFFFFD700) // Gold
                         2 -> Color(0xFFC0C0C0) // Silver
                         3 -> Color(0xFFCD7F32) // Bronze
-                        else -> Color(0xFF3A1B54)
+                        else -> if (isDarkTheme) Color(0xFF3A1B54) else Color(0xFFE2D4F8)
                     }
-                    val rankTextColor = if (rank <= 3) Color.Black else Color.White
+                    val rankTextColor = if (rank <= 3) Color.Black else textColor
 
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF220F3A)),
+                        colors = CardDefaults.cardColors(containerColor = cardBg),
                         border = androidx.compose.foundation.BorderStroke(
                             1.dp,
-                            if (rank == 1) Color(0xFFFFD700) else Color.White.copy(alpha = 0.15f)
+                            if (rank == 1) Color(0xFFFFD700) else textColor.copy(alpha = 0.15f)
                         )
                     ) {
                         Row(
@@ -187,7 +196,7 @@ fun LeaderboardScreen(
                                     )
                                     Text(
                                         text = entry.dateString,
-                                        color = Color.White.copy(alpha = 0.5f),
+                                        color = subTextColor,
                                         fontSize = 10.sp
                                     )
                                 }
@@ -196,7 +205,7 @@ fun LeaderboardScreen(
 
                                 Text(
                                     text = "${entry.trackName} • ${entry.carName}",
-                                    color = Color.White,
+                                    color = textColor,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold
                                 )
