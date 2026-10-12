@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- DRIFT SMOKE / NEON TURBO ARC -->
+    <path
+        android:pathData="M22,70 C 20,60 26,48 38,42 C 50,36 68,36 82,28 C 72,38 56,42 44,48 C 34,53 28,62 26,72 Z"
+        android:fillColor="#FF000000" />
+
+    <path
+        android:pathData="M20,76 C 24,68 32,60 44,56 C 58,52 74,48 86,34 C 76,46 60,52 46,58 C 34,63 26,72 22,78 Z"
+        android:fillColor="#FF000000" />
+
+    <!-- DRIFT CAR SILHOUETTE -->
+    <path
+        android:pathData="M 30,52 L 42,42 C 48,39 58,38 68,42 L 80,48 C 84,50 86,54 84,58 L 82,64 C 80,68 76,72 68,74 L 46,75 C 38,75 32,71 28,65 L 26,58 Z"
+        android:fillColor="#FF000000" />
+
+    <!-- Spoiler -->
+    <path
+        android:pathData="M 28,48 L 36,46 L 35,43 L 26,45 Z"
+        android:fillColor="#FF000000" />
+
+    <!-- Wheels -->
+    <path
+        android:pathData="M 34,60 A 5,7 0 0,0 42,67 A 5,7 0 0,0 34,60 Z"
+        android:fillColor="#FF000000" />
+    <path
+        android:pathData="M 68,62 A 5,8 0 0,0 78,71 A 5,8 0 0,0 68,62 Z"
+        android:fillColor="#FF000000" />
+
+    <!-- TOP CREST / MONOGRAM -->
+    <path
+        android:pathData="M 36,32 C 48,24 60,24 72,32"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round" />
+
+    <!-- D & G Monogram -->
+    <path
+        android:pathData="M 44,28 L 51,28 C 55,28 57,30 57,33 C 57,36 55,38 51,38 L 44,38 Z M 47,31 L 47,35 L 50,35 C 52,35 53,34 53,33 C 53,32 52,31 50,31 Z"
+        android:fillColor="#FF000000" />
+
+    <path
+        android:pathData="M 64,31 C 62,29 59,29 58,31 C 56,33 56,36 58,38 C 60,40 63,40 64,38 L 64,35 L 61,35 L 61,33 L 66,33 L 66,39 C 64,41 60,41 57,39 C 54,36 54,32 57,29 C 60,27 64,27 66,30 Z"
+        android:fillColor="#FF000000" />
+
+    <!-- Stars -->
+    <path
+        android:pathData="M 32,26 L 33,28 L 35,29 L 33,30 L 32,32 L 31,30 L 29,29 L 31,28 Z"
+        android:fillColor="#FF000000" />
+    <path
+        android:pathData="M 76,26 L 77,28 L 79,29 L 77,30 L 76,32 L 75,30 L 73,29 L 75,28 Z"
+        android:fillColor="#FF000000" />
+</vector>
