@@ -233,7 +233,7 @@ object GameDataDefaults {
     )
 
     val giftsList = listOf(
-        GiftItem("gift_tea", "Boba Milk Tea", 5, 10, "🧋"),
+        GiftItem("gift_tea", "Boba Milk Tea", 5, 5, "🧋"),
         GiftItem("gift_roses", "Rose Bouquet", 15, 25, "🌹"),
         GiftItem("gift_pendant", "Gem Pendant", 30, 50, "💎"),
         GiftItem("gift_ring", "Diamond Ring", 75, 120, "💍")
