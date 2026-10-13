@@ -1,22 +1,69 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, built with the [Kotlin Toolchain](https://kotlin-toolchain.org/dev/).
+# 🏎️ Drift Girls — Arcade Drift Racing & Anime Companion Game
 
-- [/androidApp](./androidApp) contains the Android application.
-- [/iosApp](./iosApp) contains the iOS application.
-- [/shared](./shared) holds the code shared across your applications — Compose UI, business logic, and platform-specific implementations. [src](./shared/src) is for common code; the sibling `src@<platform>` folders (for example `src@android`) hold code compiled only for the platform named in the folder.
-
-The `kotlin` (macOS/Linux) and `kotlin.bat` (Windows) scripts in the project root are self-bootstrapping wrappers for the Kotlin Toolchain: they download the pinned toolchain version on first use, so no separate installation is required. Build the whole project with `./kotlin build`.
-
-### Running
-
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also run each module from the command line:
-
-- Android app: `./kotlin run -m androidApp`
-- iOS app: `./kotlin run -m iosApp`
-
-### Testing
-
-Run the project's tests with `./kotlin test`, or `./kotlin test -m <module>` for a single module.
+**Drift Girls** is a high-octane 2.5D arcade drift racing and anime companion dating game built with **Kotlin Multiplatform (KMP)** and **Compose Multiplatform** targeting Android and iOS.
 
 ---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html), [Kotlin Toolchain](https://kotlin-toolchain.org/dev/), [Compose Multiplatform](https://kotlinlang.org/compose-multiplatform/).
+## 🌟 Key Features
+
+- **🏎️ Hold-to-Release Precision Drift Engine**: Dual-phase entry and exit timing evaluation with instant visual feedback badges (`PERFECT ENTRY!`, `PERFECT EXIT!`, and `DOUBLE PERFECT DRIFT!! 🚀`).
+- **🛣️ 28-Slice Perspective Track Engine**: Custom vector Canvas graphics featuring upper horizon curvature and an anchored road mouth for 2.5D arcade driving feel.
+- **⚡ Neon Yellow Drift Zone**: Dynamic on-screen asphalt overlay indicating exact entry and exit points for optimal drift scoring.
+- **⏱️ Tachometer RPM Launch System**: Interactive 5-second start countdown with revving engine RPM and a 6,400–7,300 RPM Green Target Zone for Rocket Starts.
+- **👧 Girl Companions & Dating System**: Anime companion profiles, dates (Cat Cafe, Lookout Drive, Ferris Wheel), gift shop, affection meters, and racing stat buffs.
+- **🛠️ Garage & Tuning**: Car showroom, performance component upgrades (`TOP SPEED`, `DRIFT CONTROL`, `NITRO CAPACITY`) with explicit level badges and upgrade costs, plus a custom paint color palette.
+- **💾 Full State Persistence & Orientation Resilience**: Save progression across app restarts and seamless screen rotation without losing live race or menu state.
+
+---
+
+## 🛠️ Build & Run Instructions
+
+### Prerequisites
+- Android Studio 2024.2+ or IntelliJ IDEA with Kotlin Multiplatform plugin.
+- JDK 17+.
+
+### Building
+Unset `ANDROID_PREFS_ROOT` before building with `./kotlin` to prevent Amper preference directory errors:
+
+```bash
+unset ANDROID_PREFS_ROOT && ./kotlin build -m androidApp
+```
+
+### Running
+
+- **Android App**:
+  ```bash
+  unset ANDROID_PREFS_ROOT && ./kotlin run -m androidApp
+  ```
+- **iOS App**:
+  ```bash
+  ./kotlin run -m iosApp
+  ```
+
+---
+
+## 🎮 Game Controls & Rules
+
+1. **Launch Phase**:
+   - Hold `🏎️ GAS` during the 5-second countdown to keep engine RPM inside the green zone (**6,400 – 7,300 RPM**).
+2. **Drift Entry Phase**:
+   - Touch down on `◄ DRIFT` or `DRIFT ►` when the glowing neon yellow drift zone reaches your car ($v = 0.70$).
+3. **Drift Exit Phase**:
+   - Hold the drift button through the turn and release it as the trailing edge of the yellow drift zone clears your car's wheels.
+   - Releasing too early ($< 0.55f$) or holding too long past the exit ($> 1.35f$) results in an **`EARLY/LATE EXIT (MISS)`**.
+4. **Nitro Boost**:
+   - Tap `⚡ NITRO` when the nitro meter reaches $\ge 25\%$ for speed boosts.
+
+---
+
+## 🏗️ Open-Spec Documentation
+Specifications for AI agents and developers are located in the [`/openspec`](./openspec) directory:
+- [`spec.yaml`](./openspec/spec.yaml) — Project & Feature Manifest
+- [`architecture.md`](./openspec/architecture.md) — System Architecture & KMP Module Structure
+- [`gameplay_mechanics.md`](./openspec/gameplay_mechanics.md) — Precision Drift Timing & Canvas Algorithms
+- [`data_models.md`](./openspec/data_models.md) — Data Schemas & Save Payload Format
+
+---
+
+## 📄 License
+Developed for Drift Girls KMP.

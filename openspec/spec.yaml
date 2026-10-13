@@ -1,0 +1,45 @@
+version: "1.0.0"
+project:
+  name: "Drift Girls"
+  type: "Kotlin Multiplatform Arcade Game"
+  description: "2.5D Arcade Drift Racing & Anime Companion Game built with KMP and Compose Multiplatform"
+  target_platforms:
+    - android
+    - ios
+
+features:
+  - id: "drift_engine"
+    name: "Precision Hold-to-Release Drift Mechanics"
+    description: "Dual-phase entry and exit drift timing evaluation with neon yellow asphalt overlay"
+    status: "IMPLEMENTED"
+
+  - id: "perspective_canvas"
+    name: "28-Slice Perspective Track Engine"
+    description: "Pseudo-3D perspective track canvas with upper horizon curvature and anchored lower track mouth"
+    status: "IMPLEMENTED"
+
+  - id: "tachometer_launch"
+    name: "Tachometer RPM Launch System"
+    description: "5-second countdown with green zone RPM revving (6,400 - 7,300 RPM)"
+    status: "IMPLEMENTED"
+
+  - id: "companion_dating"
+    name: "Anime Companion & Dating System"
+    description: "Dating activities, gift shop, affection meters, and racing stat boosts"
+    status: "IMPLEMENTED"
+
+  - id: "garage_tuning"
+    name: "Garage, Upgrades & Paint Studio"
+    description: "Performance component upgrades (Engine, Tires, Nitro) and custom color palette selector"
+    status: "IMPLEMENTED"
+
+  - id: "persistence"
+    name: "Cross-Platform State Persistence"
+    description: "Orientation-change activity preservation and SharedPreferences/NSUserDefaults data persistence"
+    status: "IMPLEMENTED"
+
+technical_requirements:
+  build_tool: "Kotlin Toolchain (Amper / Gradle)"
+  min_android_sdk: 24
+  target_android_sdk: 35
+  ui_framework: "Compose Multiplatform"
