@@ -6,16 +6,22 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A1B2C3D4E5F6789012345678 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F678901234567890 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		3A3D6EFE8E776C1F322008BA /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.info; name = Info.plist; path = src/Info.plist; sourceTree = "<group>"; };
 		7DBD4AD4E4E502549776BD6C /* DriftGirls.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DriftGirls.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B2C3D4E5F678901234567890 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = src/Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		486A5D989C2F2FCBC395BDD1 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		486A5D989C2F2FCBC395BDD1 /* Exceptions for "src" folder in "app" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				Assets.xcassets,
 			);
 			target = F80E85FA66BDE734D714AEC8 /* app */;
 		};
@@ -25,7 +31,7 @@
 		EB27E9B7656DCD007531445E /* src */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				486A5D989C2F2FCBC395BDD1 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+				486A5D989C2F2FCBC395BDD1 /* Exceptions for "src" folder in "app" target */,
 			);
 			path = src;
 			sourceTree = SOURCE_ROOT;
@@ -35,11 +41,22 @@
 /* Begin PBXFrameworksBuildPhase section */
 		B6B8704AE5391EF4EB000B0F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0EED2143A9AD13E7CAF5FE4F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7DBD4AD4E4E502549776BD6C /* DriftGirls.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		1EB1218EC5A2FA1C0AC70D2C = {
 			isa = PBXGroup;
 			children = (
@@ -47,14 +64,6 @@
 				3A3D6EFE8E776C1F322008BA /* Info.plist */,
 				EB27E9B7656DCD007531445E /* src */,
 			);
-			sourceTree = "<group>";
-		};
-		0EED2143A9AD13E7CAF5FE4F /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				7DBD4AD4E4E502549776BD6C /* DriftGirls.app */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -113,6 +122,10 @@
 /* Begin PBXResourcesBuildPhase section */
 		0A797FC4EB6F3D9B43650EAD /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1B2C3D4E5F6789012345678 /* Assets.xcassets in Resources */,
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
@@ -121,6 +134,9 @@
 		79F2E4F8FA2DF49AF4EF67E5 /* Build Kotlin */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
 			inputPaths = (
 			);
 			name = "Build Kotlin";
@@ -135,72 +151,14 @@
 /* Begin PBXSourcesBuildPhase section */
 		9E7471F8C93755D2BBB5230A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		B520AB17540C72F6EAADE768 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				ENABLE_PREVIEWS = YES;
-				FRAMEWORK_SEARCH_PATHS = "$(inherited) $(TARGET_BUILD_DIR)/AmperFrameworks";
-				INFOPLIST_FILE = src/Info.plist;
-				KOTLIN_CLI_WRAPPER_PATH = "$(SRCROOT)/../kotlin";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.driftgirls.DriftGirls";
-				PRODUCT_MODULE_NAME = app;
-				PRODUCT_NAME = "DriftGirls";
-				SDKROOT = iphoneos;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = (
-					1,
-					2,
-				);
-			};
-			name = Debug;
-		};
-		378FC9B997505073F4C02771 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				ENABLE_PREVIEWS = YES;
-				FRAMEWORK_SEARCH_PATHS = "$(inherited) $(TARGET_BUILD_DIR)/AmperFrameworks";
-				INFOPLIST_FILE = src/Info.plist;
-				KOTLIN_CLI_WRAPPER_PATH = "$(SRCROOT)/../kotlin";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.driftgirls.DriftGirls";
-				PRODUCT_MODULE_NAME = app;
-				PRODUCT_NAME = "DriftGirls";
-				SDKROOT = iphoneos;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = (
-					1,
-					2,
-				);
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
 		12F39AE75985EC0D4F91B2D4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -256,6 +214,75 @@
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
+		};
+		378FC9B997505073F4C02771 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WV8CX4XYMM;
+				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(TARGET_BUILD_DIR)/AmperFrameworks",
+				);
+				INFOPLIST_FILE = src/Info.plist;
+				KOTLIN_CLI_WRAPPER_PATH = "$(SRCROOT)/../kotlin";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.driftgirls.DriftGirls;
+				PRODUCT_MODULE_NAME = app;
+				PRODUCT_NAME = DriftGirls;
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1 2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		B520AB17540C72F6EAADE768 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WV8CX4XYMM;
+				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(TARGET_BUILD_DIR)/AmperFrameworks",
+				);
+				INFOPLIST_FILE = src/Info.plist;
+				KOTLIN_CLI_WRAPPER_PATH = "$(SRCROOT)/../kotlin";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.driftgirls.DriftGirls;
+				PRODUCT_MODULE_NAME = app;
+				PRODUCT_NAME = DriftGirls;
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1 2";
+			};
+			name = Debug;
 		};
 		CD0E7445258B0C4AE4AAC5F9 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -324,20 +351,20 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		BCDA97E7894539CFF124F2D0 /* Build configuration list for PBXNativeTarget "app" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				B520AB17540C72F6EAADE768 /* Debug */,
-				378FC9B997505073F4C02771 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		355047B43C6F2E362A9614A3 /* Build configuration list for PBXProject "module" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CD0E7445258B0C4AE4AAC5F9 /* Debug */,
 				12F39AE75985EC0D4F91B2D4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BCDA97E7894539CFF124F2D0 /* Build configuration list for PBXNativeTarget "app" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B520AB17540C72F6EAADE768 /* Debug */,
+				378FC9B997505073F4C02771 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

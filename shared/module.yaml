@@ -24,3 +24,19 @@ settings:
       packageName: com.driftgirls.resources
       # Generate public accessors so other modules (and previews) can use Res.*
       exposedAccessors: true
+
+settings@iosArm64:
+  kotlin:
+    freeCompilerArgs:
+      - "-linker-option"
+      - "-framework"
+      - "-linker-option"
+      - "AVFoundation"
+
+settings@iosSimulatorArm64:
+  kotlin:
+    freeCompilerArgs:
+      - "-linker-option"
+      - "-framework"
+      - "-linker-option"
+      - "AVFoundation"
